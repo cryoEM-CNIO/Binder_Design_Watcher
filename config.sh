@@ -1,6 +1,6 @@
 #Manually set the paths for every other software you have installed and environment name
 
-RFD_PATH="/apps/rosetta/RFDiffusion"
+RFD_PATH="/apps/rosetta/RFDifussion"
 PMPNN_PATH="/apps/rosetta/dl_binder_design" #If you are usign the tools from nrbennett repo, it should be the same as SILENT and AF2IG
 AF2IG_PATH="/apps/rosetta/dl_binder_design" #If you are usign the tools from nrbennett repo, it should be the same as PMPNN and SILENT
 MICRORUN_PATH="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
@@ -20,3 +20,6 @@ NODES=1
 PARTITION=RFD
 CPUS_PER_GPU=12
 GRES=gpu:1
+
+
+source /apps/profile.d/load_all.sh
