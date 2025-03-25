@@ -1,18 +1,10 @@
 #!/bin/bash
 
-# Number of desired cpus:
-#SBATCH --nodes=1
-#SBATCH -p RFD
-#SBATCH --open-mode=append
-#SBATCH --gres=gpu:1
-#SBATCH --exclusive
-#SBATCH --cpus-per-gpu=12
-#SBATCH -o slurm_logs/%j.out
-#SBATCH -e slurm_logs/%j.err
-
 # Display the parsed values
-source /apps/profile.d/load_all.sh
-conda activate dl_binder_design
+#Load all variables
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source $SCRIPT_DIR/../config.sh
+conda activate watcher
 
 hits_number=10000
 ## Parse command-line arguments
@@ -46,19 +38,19 @@ for GPU_ID in $GPUS_AVAILABLE; do
         # 1 Generate the silent file
         # --------------------------------------------
 
-        /apps/rosetta/dl_binder_design/include/silent_tools/silentrename initial_input.silent "run_${run}_design_${t}" > "output/run_${run}/run_${run}_design_${t}_input.silent" 
+        $SILENT_PATH/include/silent_tools/silentrename initial_input.silent "run_${run}_design_${t}" > "output/run_${run}/run_${run}_design_${t}_input.silent" 
         wait
         # --------------------------------------------
         # 2 pMPNN
         # --------------------------------------------
 
-        bash /apps/scripts/protein_design/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --soluble "$soluble" --distance "$distance" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
+        bash $MICRORUN_PATH/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --soluble "$soluble" --distance "$distance" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
         wait
         # --------------------------------------------
         # 3 Scoring(AF2IG + PyRosetta)
         # --------------------------------------------
 
-        bash /apps/scripts/protein_design/master_scripts/scoring.sh --run "$run" --t "$t" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
+        bash $MICRORUN_PATH/master_scripts/scoring.sh --run "$run" --t "$t" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
         wait
     ) &
     ((t=t+1))
@@ -68,4 +60,4 @@ wait
 # 4 Finish Microrun
 # --------------------------------------------
 
-bash /apps/scripts/protein_design/master_scripts/ending.sh --number "$hits_number" --run "$run"
+bash $MICRORUN_PATH/master_scripts/ending.sh --number "$hits_number" --run "$run"

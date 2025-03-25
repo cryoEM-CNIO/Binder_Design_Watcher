@@ -37,12 +37,12 @@ echo -e "Instaling conda requirements\n"
 $pkg_manager install pyrosetta --channel https://conda.graylab.jhu.edu -y  || { echo -e "Error: Failed to install conda packages."; exit 1; }
 pip install CodonTransformer
 pip install dash
-
 pip install dash-bio
 pip install biopython
+pip install pandas
 
 # make sure all required packages were installed
-required_packages=(pyrosetta codontransformer dash dash-bio biopython)
+required_packages=(pyrosetta codontransformer dash dash-bio biopython pandas)
 missing_packages=()
 
 # Check each package

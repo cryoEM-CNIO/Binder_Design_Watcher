@@ -38,22 +38,23 @@ echo "  - noise scale (only if PD): $noise_scale"
 echo "  - noise_steps (only if PD): $noise_steps"
 echo "  - residues fixed: $residues"
 
-# Activate environment
-source /apps/profile.d/load_all.sh
-conda activate SE3nv4090
+#Load all variables
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source $SCRIPT_DIR/../config.sh
+conda activate $RFD_ENV
 
 # Run!
 if [ $partial_diff = "True" ]; then
     if [ $residues = "None" ]; then 
-        /apps/rosetta/RFDifussion/scripts/run_inference.py inference.design_startnum="$design_startnum" inference.output_prefix="$output_prefix" inference.input_pdb="$input_pdb" contigmap.contigs="$contigmap_descriptor"  inference.num_designs="$designs_n" diffuser.partial_T="$noise_steps" denoiser.noise_scale_ca="$noise_scale" denoiser.noise_scale_frame="$noise_scale"
+        $RFD_PATH/scripts/run_inference.py inference.design_startnum="$design_startnum" inference.output_prefix="$output_prefix" inference.input_pdb="$input_pdb" contigmap.contigs="$contigmap_descriptor"  inference.num_designs="$designs_n" diffuser.partial_T="$noise_steps" denoiser.noise_scale_ca="$noise_scale" denoiser.noise_scale_frame="$noise_scale"
     else
-        /apps/rosetta/RFDifussion/scripts/run_inference.py inference.design_startnum="$design_startnum" inference.output_prefix="$output_prefix" inference.input_pdb="$input_pdb" contigmap.contigs="$contigmap_descriptor"  inference.num_designs="$designs_n" diffuser.partial_T="$noise_steps" denoiser.noise_scale_ca="$noise_scale" denoiser.noise_scale_frame="$noise_scale" contigmap.provide_seq="$residues"
+        $RFD_PATH/scripts/run_inference.py inference.design_startnum="$design_startnum" inference.output_prefix="$output_prefix" inference.input_pdb="$input_pdb" contigmap.contigs="$contigmap_descriptor"  inference.num_designs="$designs_n" diffuser.partial_T="$noise_steps" denoiser.noise_scale_ca="$noise_scale" denoiser.noise_scale_frame="$noise_scale" contigmap.provide_seq="$residues"
     fi
 else
     if [ -z "${hotspots_descriptor+x}" ]; then
-        /apps/rosetta/RFDifussion/scripts/run_inference.py inference.design_startnum="$design_startnum" inference.output_prefix="$output_prefix" inference.input_pdb="$input_pdb" contigmap.contigs="$contigmap_descriptor" inference.num_designs=$designs_n denoiser.noise_scale_ca=0 denoiser.noise_scale_frame=0 inference.ckpt_override_path="$ckp"
+        $RFD_PATH/scripts/run_inference.py inference.design_startnum="$design_startnum" inference.output_prefix="$output_prefix" inference.input_pdb="$input_pdb" contigmap.contigs="$contigmap_descriptor" inference.num_designs=$designs_n denoiser.noise_scale_ca=0 denoiser.noise_scale_frame=0 inference.ckpt_override_path="$ckp"
     else
-        /apps/rosetta/RFDifussion/scripts/run_inference.py inference.design_startnum="$design_startnum" inference.output_prefix="$output_prefix" inference.input_pdb="$input_pdb" contigmap.contigs="$contigmap_descriptor" ppi.hotspot_res="$hotspots_descriptor" inference.num_designs=$designs_n denoiser.noise_scale_ca=0 denoiser.noise_scale_frame=0 inference.ckpt_override_path="$ckp"
+        $RFD_PATH/scripts/run_inference.py inference.design_startnum="$design_startnum" inference.output_prefix="$output_prefix" inference.input_pdb="$input_pdb" contigmap.contigs="$contigmap_descriptor" ppi.hotspot_res="$hotspots_descriptor" inference.num_designs=$designs_n denoiser.noise_scale_ca=0 denoiser.noise_scale_frame=0 inference.ckpt_override_path="$ckp"
     fi
 fi
 echo "done"

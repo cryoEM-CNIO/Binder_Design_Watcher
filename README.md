@@ -1,18 +1,24 @@
 # MICRORUN & WATCHER
 
-These are a few scripts intended to provide a platform for users of SLURM based small HPC that can help to atomize the task of protein design, as well as check *on the fly* how the runs are performing and help with the selection of designs for subsequent order.
+These are a few scripts intended to provide a platform for users of SLURM based small HPC that can help to atomize the task of protein design (*microrun.sh*), as well as check *on the fly* how the runs are performing and help with the selection of designs for subsequent order (*watcher.py*).
 
 Right now it can be used with RosettaFold Diffusion (for which we have added some physical based scorings using PyRosetta)
 
 Hope you can find them useful!
 
 This repository is organized as follows:
+-**microrun**: In this folder is stored all the code needed to run the binder design process using the microrun structure 
+    - **scripts**: This is where the different scripts use in the microrun are stored, as well as some other useful design for the protein design process.
+    - **slurm_submit**: In this folder we store the SLURM submit scripts
+    - **master_scripts**: In this folder the scripts running each of the steps are stored 
+- **monitoring_utils**: In this folder there are all the utils used with the watcher
 
-- **scripts**: This is where the different scripts use in the microrun are stored, as well as some other useful design for the protein design process.
-- **slurm_submit**: In this folder we store the SLURM submit scripts
-- **monitoring**: In this folder we have the watcher script, the tool we use to check *on the fly* how the run is going, as well as to select designs based on different metrics.
-    - **monitoring.utils**: Where the functions of the watcher are stored.
-
+Outside of this folder you have 5 different files:
+- **config.sh**: A config file to set all the paths for the different softwares that microrun uses, the environment names and the SLURM configurations
+- **install_watcher.sh**: A script to install the watcher environment, which is also used in some steps of the microrun campaing run
+- **microrun.sh**: The script to run a binder design campaing following the microrun structure
+- **microrun_watcher.py**: The script to visualize on the fly how the campaign is going, as well to select and get the designs sequences
+- **sequence_diversity.sh**: The script to run the sequence diversity option, which consists in generating only differnet sequences for a backbone using the microrun structure
 ## HOW IT WORKS
 
 ### MICRORUN
@@ -68,7 +74,7 @@ project_dir/
     └── [job_number].err                                                    # errorfile of the job      
 ```
 
-We add an intermediate step between the binder generation and the sequence assignment in which we substitute the cropped input for a desired template, and check both the presence of steric clashes between binder and target and the presence of a large enough hydrophobic core to save computational resources.
+We add an intermediate step between the binder generation and the sequence assignment in which we substitute the cropped input for a desired template, and check both the presence of steric clashes between binder and target and the presence of a large enough hydrophobic core to save computational resources (we remove from the sequence assignment and scoring those designs which are single helix or hairpins).
 ### WATCHER
 
 The watcher is a Dash based app which allows you to follow *on-the-fly* the binder generation process, as well as visualize and extract the desired hits, both protein and cDNA sequence. Moreover, and usign CodonTransformer, you can select to which organism adapt the sequence, and your desired overhang to both 5' and 3'.
@@ -113,7 +119,7 @@ Finally the extract hits button allows you to extract the hits.
 
 We also have created some scripts that we think can be useful for binder design. These scripts are stored at the `scripts` folder and are:
 
-- `contigs_map_getter.py`: returns the contigs maps of the given protein (provided through -i flag). There is also a version for partial diffusion called `contigs_map_getter_pd.py`
+- `contigs_map_getter.py`: returns the contigs maps of the given protein (provided through -i flag). You can also get the contigs for partial diffusion adding the flag --partial_diff 
 - `RMSD_rosetta.py`: A script which uses PyRosetta to make all-by-all pairwise comparisons of the hits designs and clusterized them by similarity. This script can be useful to select structurally diverse designs in an initial design screening
 - `sequence_diversity.sh`: A script that allows you to make microrun-structured design project starting from a pdb (perform pMPNN, AF2 and PyRosetta). Useful to make sequence exploration once you have a good structure.
 
@@ -122,7 +128,7 @@ We also have created some scripts that we think can be useful for binder design.
 
 First, you need to clone this repository, 
 
-`git clone XXXX [install_folder]`
+`git clone https://github.com/cryoEM-CNIO/Binder_Design_Watcher [install_folder]`
 
 Where install_folder is the path where you want to install it.
 
@@ -138,24 +144,39 @@ Where PKG_MANAGER is whether conda or mamba (the default and the one we use is c
 
 As it happens with RFD, this installs PyRosetta, which requires a license for commercial purposes.
 
+After cloning the respository and installing the environment, you have to set all your local information in **config.sh** (Paths to the RFD, pMPNN and AF2IG directory, environments names and slurm configuration).  
+
 ## EXAMPLE USAGE
 
 To generate binders with microrun.sh, do
 ```bash
 cd Examples/RFD_binder_generation
-python3 ../../scripts/contig_map_getter.py # Copy the last line of the printed output and paste it in --rfd_contigs brackets
-bash ../../microrun_v3.sh --input input/PDL1_modified.pdb --template input/PDL1_modified.pdb --max_threads 4 --rfd_contigs "[ 50-125 B1001-1115/0 ]" --rfd_hotspots "[ B1007, B1011, B1025, B1029 ]"  > campaign_example.log 2>&1 &
+python3 ../../scripts/contig_map_getter.py -i input/PDL1_modified.pdb # Copy the output and paste it in --rfd_contigs brackets
+bash ../../microrun.sh --input input/PDL1_modified.pdb --template input/PDL1_modified.pdb --max_threads 4 --rfd_contigs "[ 50-125 B1001-1115/0 ]" --rfd_hotspots "[ B1007, B1011, B1025, B1029 ]"  > campaign_example.log 2>&1 &
 ```
 
+To perform partial diffusion do: 
+```bash
+cd Examples/RFD_partial_diffusion
+python3 ../../scripts/contig_map_getter.py # Copy the output and paste it in --rfd_contigs brackets
+bash ../../microrun.sh --input input/PDL1_modified.pdb --template input/PDL1_modified.pdb --max_threads 4 --partial_diff "True"  > campaign_example_pd.log 2>&1 & #To check what more things you can modify, see the flags sections next
+```
+
+To perform sequence diversity:
+
+```bash
+cd Examples/Sequence_diversity
+bash ../../sequence_diversity.sh --input input/run_20_design_3_substituted_dldesign_0_cycle1_dldesign_0_cycle1_af2pred.pdb --threads 2 --max 1000 --nseqs 50 --fr 0 --fixed "[1-20]"  > sd_2.log 2>&1 &
+```
 
 To activate the watcher, run:
 
 ```bash
 conda activate watcher
-python3 /path/to/watcher.py 
+python3 ../../microrun_watcher.py 
 ```
 
-By default, watcher.py is located at port 8050. If you want to open more than one watcher at the same time, run --port 805X
+Watcher can be used with both microrun and sequence diversity. By default, watcher.py is located at port 8050. If you want to open more than one watcher at the same time, run --port 805X
 
 ### MICRORUN FLAGS
 
@@ -181,10 +202,10 @@ The microrun script admits different flags for binder design. Many of them have 
 - `--soluble_pMPNN`: Boolean flag to redesign the non-interacting binder surface usign pMPNN_soluble. Default=False
 - `--distance`: Distance from the protein-protein interface to start redesigning the sequnce usign pMPNN soluble. Default=10
 - `--hits_number`: Number of designs which pass the filtering metrics after which the process stops. Default=100
-- `--core`: Threshold of binder fraction core residues for filtering (filtering no plausible structures like most of two helices bundles).  Default=0.0696969697
+- `--core`: Threshold of binder fraction core residues for filtering (filtering no plausible structures like most of two helices bundles).  Default=0.05
 - `--residues`: List of residues from the design you want to fix. Useful in the case of scaffolds, to avoid full pMPNN binder sequence reconstruction. Default=""
 
-`Note: The core threshold is extracted using F1-score from a 1000 design datasets, it should be improved, not too strict `
+`Note: The core threshold is extracted using F1-score from a 1000 design datasets, it should be improved, not too strict`
 
 ## ALTERNATIVE SCORING METRICS
 

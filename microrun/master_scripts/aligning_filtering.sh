@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # Activate environment
-source /apps/profile.d/load_all.sh
-conda activate dl_binder_design
+#Load all variables
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source $SCRIPT_DIR/../config.sh
+conda activate $MICRORUN_ENV
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -33,7 +35,7 @@ echo "Current machine $machine"
 # Run!
 #run align
 
-python3 /apps/scripts/protein_design/scripts/biopython_align.py --template $template --chain "B" --run "$run" --t "$t" --core "$core" --residues "$residues"
+python3 $MICRORUN_PATH/microrun/scripts/biopython_align.py --template $template --chain "B" --run "$run" --t "$t" --core "$core" --residues "$residues"
 #run silent to split in 4 groups each for each gpu
 echo "Creating silent files"
 /apps/rosetta/dl_binder_design/include/silent_tools/silentfrompdbsparallel "output/run_${run}/run_${run}_design_${t}*_substituted.pdb" > "$silent_output"

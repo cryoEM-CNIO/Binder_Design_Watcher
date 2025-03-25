@@ -1,21 +1,6 @@
-#!/usr/bin/env python3
-
-'''
-POSSIBLE PROBLEMS
-
-- If you don't use the FastRelax cycle to improve the sequences, the names of the files change. In this case, you should remove the cycle_1 from the csv of Rosetta and CUTRE
-This could have an easy fix
-
-'''
-
-'''
-things to do: 
-
-'''
-
+#!/usr/bin/env python3¡
 import os
 import pandas as pd
-
 import dash
 from dash import dash_table
 import dash_bio as dashbio
@@ -30,9 +15,11 @@ import argparse
 import socket
 import numpy as np
 import time
-from utils.hits_utils import *
-from utils.generic_utils import *
-from utils.plotting_utils import *
+import os.path
+import math
+from monitoring_utils.hits_utils import *
+from monitoring_utils.generic_utils import *
+from monitoring_utils.plotting_utils import *
 
 
 
@@ -60,7 +47,7 @@ directories_list=get_working_directories(working_dir)
 if not directories_list:
     directories_list=[working_dir]
 designs_list=[]
-
+print(directories_list)
 #Initial lists for extraction dropdowns
 
 initial_organisms=[
@@ -77,29 +64,6 @@ initial_organisms=[
     "Saccharomyces cerevisiae",
     "Escherichia coli general",
 ]
-
-# three_prime_overhangs=[
-#     'EGFP-10xHis', 
-#     '6xHis-tag', 
-#     'GST-tag', 
-#     'FLAG-tag', 
-#     'MBP-tag', 
-#     'T7-tag', 
-#     'Twin-Strep-tag',
-#     'C-terminal_linker'
-# ]
-
-# five_prime_overhangs=[
-#     'EGFP-10xHis', 
-#     '6xHis-tag', 
-#     'GST-tag', 
-#     'FLAG-tag', 
-#     'MBP-tag', 
-#     'T7-tag', 
-#     'Twin-Strep-tag', 
-#     'N-terminal_linker', 
-#     'Gateway'
-# ]
 
 # Styles
 bt_style = {"align-items": "center", "background-color": "#F2F3F4", "border": "2px solid #000",
@@ -119,8 +83,11 @@ table_style={'overflowX': 'auto','width': '100%', 'margin': '0 auto'}
 table_cell_style={'minWidth': '150px', 'width': '150px', 'maxWidth': '150px', 'overflow': 'hidden', 'textOverflow': 'ellipsis', 'padding': '5px',}
 title_style = {"margin-left": "15px", "margin-top": "15px", "margin-bottom": "0em", "color": "Black", "font-family" : "Helvetica", "font-size":"2.5em"}
 box_style3 = {"font-size":"0.9em",'padding':'0.3em 1.2em','width':"18%", "margin-left": "0%","margin-right": "1%", "color": "black","font-family" : "Helvetica", 'vertical-align': 'center', "margin-bottom":"2px"}
-extraction_box_style={'padding': '20px','background-color': '#f9f9f9','border-radius': '10px','box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)','flex': '1','min-width': '250px', 'flex-basis': '300px'}
-cool_button_style={'font-size': '18px','padding': '30px 60px','background': 'linear-gradient(135deg, #4CAF50, #81C784)','color': 'white','border': 'none','border-radius': '10px','box-shadow': '0px 4px 6px rgba(0, 0, 0, 0.1)','cursor': 'pointer','transition': 'transform 0.2s, box-shadow 0.2s','flex':'1','min-width': '300px', 'flex-basis': '350px','height': '200px'}
+extraction_box_style={'padding': '20px','background-color': '#f9f9f9','border-radius': '10px','box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)','flex': '1','min-width': '250px', 'flex-basis': '300px', 'height':'100px'}
+extraction_box_cl_style={'padding': '20px','max-height':'240px','overflow-y':'auto','background-color': '#f9f9f9','border-radius': '10px','box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)','flex': '1','min-width': '250px', 'flex-basis': '300px', 'height':'290px'}
+cool_button_style={'font-size': '24px','padding': '30px 60px','background': 'linear-gradient(135deg, #4CAF50, #81C784)','color': 'white','border': 'none','border-radius': '10px','box-shadow': '0px 4px 6px rgba(0, 0, 0, 0.1)','cursor': 'pointer','transition': 'transform 0.2s, box-shadow 0.2s','flex':'1','min-width': '300px', 'flex-basis': '350px','height': '290px'}
+stop_button_style = {'font-size': '18px','padding': '30px 60px','background': 'linear-gradient(135deg, #FF0000, #FF6347)','color': 'white','border': 'none','border-radius': '10px','box-shadow': '0px 4px 6px rgba(0, 0, 0, 0.1)','cursor': 'pointer','transition': 'transform 0.2s, box-shadow 0.2s','flex': '1','min-width': '300px','flex-basis': '350px','height': '200px'}
+extraction_cl_style={'margin-top':'50px','max-height':'750px','overflow-y':'auto','background-color': '#f9f9f9','border-radius': '10px','box-shadow': '0 4px 6px rgba(0, 0, 0, 0.1)','flex': '1','min-width': '250px', 'flex-basis': '300px', 'display':'flex', 'align-items':'flex-start'}
 # Color definitions
 color_points = 'cornflowerblue'
 
@@ -155,7 +122,7 @@ def serve_layout():
                             [
                                 html.H5('X Value'),
                                 dcc.Dropdown(
-                                    ['plddt_binder','pae_interaction','CUTRE','dG','dSASA','Shape_complementarity','Packstat','dG_SASA_ratio','length','SAP','binder_int_hyd','binder_surf_hyd','interface_hbonds','interface_unsat_hbonds'],
+                                    ['plddt_binder','pae_interaction','CUTRE','dG','dSASA','Shape_complementarity','Packstat','dG_SASA_ratio','length','SAP','binder_int_hyd','binder_surf_hyd','interface_hbonds','interface_unsat_hbonds', 'ipSAE', 'RMSD'],
                                     'pae_interaction',
                                     id='xaxis_value',
                                     style=dropdown_style
@@ -167,7 +134,7 @@ def serve_layout():
                             [
                                 html.H5('Y Value'),
                                 dcc.Dropdown(
-                                    ['plddt_binder','pae_interaction','CUTRE','dG','dSASA','Shape_complementarity','Packstat','dG_SASA_ratio','length','SAP','binder_int_hyd','binder_surf_hyd','interface_hbonds','interface_unsat_hbonds'],
+                                    ['plddt_binder','pae_interaction','CUTRE','dG','dSASA','Shape_complementarity','Packstat','dG_SASA_ratio','length','SAP','binder_int_hyd','binder_surf_hyd','interface_hbonds','interface_unsat_hbonds', 'ipSAE', 'RMSD'],
                                     'plddt_binder',
                                     id='yaxis_value',
                                     style=dropdown_style
@@ -270,10 +237,26 @@ def serve_layout():
                 ),
                 html.Div(
                     [
-                        html.H4('Original Input Path (For Partial Diffusion comparison)'),
-                        dcc.Input(id='input_pdb_path', type='text', placeholder='Input PDB file', style=box_style3)
-                    ],
-                    style={'width':'100%', 'padding':'10px'}
+                        html.Div(
+                        [
+                            html.H4('Original Input Path (For Partial Diffusion comparison)'),
+                            dcc.Input(
+                            id='input_pdb_path',
+                            type='text',
+                            placeholder='Input PDB file', 
+                            style=box_style3
+                            )], style={'width':'100%', 'padding':'10px'}
+                        ),
+                        html.Div([
+                                    html.Button(
+                                    'STOP CAMPAIGN',
+                                    id='stop-campaign',
+                                    n_clicks=0,
+                                    style=stop_button_style,
+                                    )]
+                        )
+                    ],style={'display': 'flex', 'flex-direction': 'row', 'align-items': 'center'}
+ 
                 ),
                 html.Div(id='job-status-counts', style={'margin': '20px 0'}),
                 html.Div([
@@ -303,100 +286,129 @@ def serve_layout():
             dcc.Tab(label='Extraction', children=[
                 html.Div([
                     html.Div([
-                        dcc.Dropdown(options='', value='', placeholder='Select a hit', id='extractions_molecule_dropdown'),
+                        dcc.Dropdown(options='', value='', placeholder='Select a hit', id='extractions_molecule_dropdown', style={'width':'100%'}),
                         dashbio.NglMoleculeViewer(id="extractions_molecule")
-                            ], style={'width':'50%', 'padding':'10px'}
-                        ),
+                        ],style={'display': 'flex', 'flex-direction': 'column', 'width': '50%', 'padding': '2px'}),
                     html.Div([
                         dcc.Checklist(options='', value='', id='extraction-selection' )
-                        ], style={'width':'50%', 'padding':'10px'})
-                    ], style={'display': 'flex','align-items': 'center' },
-                ),
+                        ], style=extraction_cl_style)
+                    ], style={'display': 'flex', 'flex-direction': 'row', 'align-items': 'flex-start'}),
                 html.Div([
                     html.H3("Extraction options"),
                     html.Div([
-                            html.Div([
-                                html.H4('File to extract from:', style={'margin-bottom': '5px'}),
-                                dcc.RadioItems(
-                                    ['PMPNN', 'AF2'], 
-                                    'AF2', 
-                                    id='extract-type', 
-                                    style={'margin-bottom': '20px', 'display': 'block'}
-                                ),
-                            ], style=extraction_box_style), 
+                        html.Div([
+                            html.H4('File to extract from:', style={'margin-bottom': '5px'}),
+                            dcc.RadioItems(
+                                ['PMPNN', 'AF2'],
+                                'AF2',
+                                id='extract-type',
+                                style={'margin-bottom': '20px', 'display': 'block'}
+                            ),
+                        ], style=extraction_box_style),
 
-                            html.Div([
-                                html.H4("Add initial Methionine:", style={'margin-bottom': '5px'}),
-                                dcc.RadioItems(
-                                    ['True', 'False'], 
-                                    'False', 
-                                    id='add_met', 
-                                    style={'display': 'block'}
-                                ),
-                            ], style=extraction_box_style),
+                        html.Div([
+                            html.H4('Generate DNA sequence ?'),
+                            dcc.RadioItems(
+                                ['Yes', 'No'],
+                                'Yes',
+                                id='DNA-seq',
+                                style={'margin-bottom': '20px', 'display': 'block'}
+                            ),
+                        ], style=extraction_box_style),
+                    ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
+                    
+                    html.Div([
+                        html.Div([
+                            html.H4("Add initial Methionine:", style={'margin-bottom': '5px'}),
+                            dcc.RadioItems(
+                                ['True', 'False'],
+                                'False',
+                                id='add_met',
+                                style={'display': 'block'}
+                            ),
+                        ], style=extraction_box_style),
 
-                            html.Div([
-                                html.H4("Organism"),
-                                dcc.Dropdown(
-                                    initial_organisms,
-                                    'Escherichia coli general',
-                                    id='organism',
-                                    style={'display':'block'})
-                                ], style=extraction_box_style),
-                            html.Div([       
-                                html.H4("3\' overhang"),
-                                dcc.Input(
-                                    placeholder='Input your sequence',
-                                    value='',
-                                    id='three_prime_overhang',
-                                    style={'display':'block'})
-                                ], style=extraction_box_style),
-                            html.Div([
-                                html.H4("5\' overhang"),
-                                dcc.Input(
-                                    placeholder='Input your sequence',
-                                    value='',
-                                    id='five_prime_overhang',
-                                    style={'display':'block'})
-                                    ], style=extraction_box_style),
-                            html.Div([
-                                html.H4("Reach a length of ..."),
-                                dcc.Input(
-                                    value=300,
-                                    type="number",
-                                    id='random_sequence',
-                                    style={'display':'block'})
-                                    ], style=extraction_box_style),     
-                            html.Div([
-                                html.H4("GC % of the random sequence"),
-                                dcc.Input(
-                                    value=50,
-                                    id='GC_content',
-                                    type="number",
-                                    style={'display':'block'})
-                                    ]),                         
-                            html.Div([
-                                html.Button(
-                                    'Extract hits',
-                                    id='execute-hits',
-                                    n_clicks=0,
-                                    style=cool_button_style,
-                                    )
-                                ]),
-                        html.Div(id='hidden-output', style={'display': 'none'})
-                        ], style={
-                            'display': 'flex', 
-                            'flex-direction': 'row', 
-                            'gap': '10px', 
-                            'width': '60vh', 
-                            'padding': '0 10px'
-                            }),
+                        html.Div([
+                            html.H4("Organism"),
+                            dcc.Dropdown(
+                                initial_organisms,
+                                'Escherichia coli general',
+                                id='organism',
+                                style={'display': 'block'})
+                        ], style=extraction_box_style),
+                    ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
 
-                    ])
-                ])                   
-            ])
+                    html.Div([
+                        html.Div([
+                            html.H4("3' overhang"),
+                            dcc.Input(
+                                placeholder='Input your sequence',
+                                value='',
+                                id='three_prime_overhang',
+                                style={'display': 'block'})
+                        ], style=extraction_box_style),
+
+                        html.Div([
+                            html.H4("5' overhang"),
+                            dcc.Input(
+                                placeholder='Input your sequence',
+                                value='',
+                                id='five_prime_overhang',
+                                style={'display': 'block'})
+                        ], style=extraction_box_style),
+                    ],  style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
+
+                    html.Div([
+                        html.Div([
+                            html.H4("Reach a length of ..."),
+                            dcc.Input(
+                                value=300,
+                                type="number",
+                                id='random_sequence',
+                                style={'display': 'block'})
+                        ], style=extraction_box_style),
+
+                        html.Div([
+                            html.H4("GC % of the random sequence"),
+                            dcc.Input(
+                                value=50,
+                                id='GC_content',
+                                type="number",
+                                style={'display': 'block'})
+                        ], style=extraction_box_style),
+
+                    ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),  # Second Column
+                    html.Div([
+                        html.Div([
+                            html.H4('Check RE sites'),
+                            dcc.Checklist(
+                                options=[
+                                    {'label': enzyme, 'value': enzyme} for enzyme in [
+                                        'EcoRI', 'BamHI', 'HindIII', 'NotI', 'XhoI', 'PstI', 'SacI', 'KpnI', 
+                                        'SmaI', 'XbaI', 'SpeI', 'NcoI', 'SalI', 'ApaI', 'HaeIII', 'AluI', 
+                                        'TaqI', 'BglII', 'ClaI', 'MluI', 'BsaI'
+                                    ]
+                                ],
+                                value=[],
+                                id='enzyme',
+                                style={'display': 'flex', 'flex-direction': 'column', 'gap': '5px'})
+                        ],style=extraction_box_cl_style)
+                        ],style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),                    
+                    html.Div([
+                        html.Button(
+                            'Extract hits',
+                            id='execute-hits',
+                            n_clicks=0,
+                            style=cool_button_style,
+                        )
+                    ], style={'width': '50%', 'display': 'inline-block', 'vertical-align': 'top'}),
+
+                ], style={'display': 'flex', 'justify-content': 'space-between', 'width': '80vh', 'padding': '10px'}),
+  
+            ], style={'display': 'flex', 'flex-direction': 'column', 'align-items': 'center', 'width': '80vh', 'padding': '10px'})                   
         ])
     ])
+])
 app.layout = serve_layout
 
 
@@ -437,7 +449,7 @@ def return_molecule(value,directory):
      Output('extraction-selection', 'value')],
     [Input('directory-dropdown', 'value'),
      Input('interval-component', 'n_intervals'),
-     Input('execute-csv', 'n_clicks'),
+     Input('stop-campaign', 'n_clicks'),
      Input('xaxis_value', 'value'),
      Input('yaxis_value','value'),
      Input('input_pdb_path', 'value'),
@@ -451,7 +463,7 @@ def return_molecule(value,directory):
      Input('binder_surf_hyd_thres', 'value'),
      ])
 
-def update_graph( working_dir,n, n_clicks_csv,xaxis_value,yaxis_value, input_pdb_path, pae_interaction_thres,CUTRE_thres, plddt_binder_thres, dsasa_thres, shape_complementarity_thres, interface_hbond_thres, interface_unsat_hbond_thres, binder_surf_hyd_thres):
+def update_graph( working_dir,n, n_clicks_stop,xaxis_value,yaxis_value, input_pdb_path, pae_interaction_thres,CUTRE_thres, plddt_binder_thres, dsasa_thres, shape_complementarity_thres, interface_hbond_thres, interface_unsat_hbond_thres, binder_surf_hyd_thres):
         
     directory=f'{working_dir}/output/'
     merged_df = pd.DataFrame()
@@ -464,18 +476,19 @@ def update_graph( working_dir,n, n_clicks_csv,xaxis_value,yaxis_value, input_pdb
         status_df_records = status_df.to_dict('records')
     else:
         status_df_records = []
+    
+    #Make scatter plot
+
+    
+    scatter_plot, row_count_text = update_scatter_plot(working_dir, merged_df,filtered_df,xaxis_value, yaxis_value, input_pdb_path )
 
     ctx = dash.callback_context
     
-    #Generate CSVs
-    if ctx.triggered[0]['prop_id'] == 'execute-csv.n_clicks':
-        if not merged_df.empty:
-            merged_df.iloc[:, 1:].to_csv(f'{working_dir}/all_models.csv', index=False)
-            if not filtered_df.iloc[:, 1:].empty:
-                filtered_df.to_csv(f'{working_dir}/hits.csv', index=False)
-        scatter_plot, row_count_text = update_scatter_plot(working_dir,merged_df,filtered_df, xaxis_value, yaxis_value,input_pdb_path )
-    else:
-        scatter_plot, row_count_text = update_scatter_plot(working_dir, merged_df,filtered_df,xaxis_value, yaxis_value, input_pdb_path )
+    #STOP CAMPAIGN
+    if ctx.triggered[0]['prop_id'] == 'stop-campaign.n_clicks':
+        command=f'touch {working_dir}/campaign_done'
+        subprocess.run(command, shell=True)
+
     # Job status counts
     status_counts = status_df['status'].value_counts().to_dict()
     status_counts_formatted = ", ".join([f"{status}: {count}" for status, count in status_counts.items()])
@@ -509,8 +522,7 @@ def update_graph( working_dir,n, n_clicks_csv,xaxis_value,yaxis_value, input_pdb
     Input('interface_hbond_thres', 'value'),
     Input('interface_unsat_hbond_thres', 'value'),
     Input('binder_surf_hyd_thres', 'value'),
-    ]
-)
+    ])
 
 #This prints the radar plot
 def update_radar_plot(design_to_plot, n, directory, input_pdb_path, pae_interaction_thres,CUTRE_thres, plddt_binder_thres, dsasa_thres, shape_complementarity_thres, interface_hbond_thres, interface_unsat_hbond_thres, binder_surf_hyd_thres):
@@ -523,23 +535,24 @@ def update_radar_plot(design_to_plot, n, directory, input_pdb_path, pae_interact
     return radar_figure
 
 @callback(
-    Output('hidden-output', 'children'),
     [
         Input('directory-dropdown', 'value'),
         Input('interval-component', 'n_intervals'),
         Input('execute-hits', 'n_clicks'),
         Input('extract-type','value'),
+        Input('DNA-seq', 'value'),
         Input('add_met', 'value'),
         Input('organism', 'value'),
         Input('three_prime_overhang', 'value'),
         Input('five_prime_overhang', 'value'),
         Input('extraction-selection', 'value'),
         Input('random_sequence', 'value'),
-        Input('GC_content', 'value')
+        Input('GC_content', 'value'),
+        Input('enzyme', 'value')
     ]
 )
 
-def extract_hits(working_dir, n, clicks, extract_type, met, organism, three_prime, five_prime, extraction_list, length, GC):
+def extract_hits(working_dir, n, clicks, extract_type,DNA_seq, met, organism, three_prime, five_prime, extraction_list, length, GC,enzyme):
     
     #Create the hits folder
     hits_folder = os.path.join(working_dir, 'hits')
@@ -557,22 +570,49 @@ def extract_hits(working_dir, n, clicks, extract_type, met, organism, three_prim
             for description in extraction_list:
                 print('###############################\nEXTRACTING HIT\n###############################\n' + description)
                 run_number = re.search(r'run_\d+',description).group()
-                if extract_type == 'PMPNN':
-                    command = f'silentextractspecific {working_dir}/output/'+ run_number + '/' + run_number + '_input_out.silent ' + description[:-8] + ' > extraction.log'
+                design_number = math.floor(int(re.search(r'run_\d+_design_(\d+).*',description).group(1))/10)
+                ########## For the v2 tests microrun, different structure ######################################################
+                ########## If we go forward with the V3, marked lines must be remove before deployment ######################### 
+                if design_number != 0:
+                    pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
+                    af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
+                    af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
                 else:
-                    command = f'silentextractspecific {working_dir}/output/'+ run_number + '/' + run_number + '_input_sol_out_af2.silent ' + description + ' > extraction.log'  
-                subprocess.run(command, cwd=hits_folder, shell=True)
-                #Record scoring data in the pdb
-                add_stats_to_pdb(description, working_dir)
-                
+                    if os.path.isfile(f'{working_dir}/output/{run_number}/{run_number}_input_out.silent'):
+                        pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_input_out.silent'
+                        af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_input_sol_out_af2.silent'
+                        af2_file=f'{working_dir}/output/{run_number}/{run_number}_input_out_af2.silent'
+                    else:
+                        design_number=int(re.search(r'run_\d+_design_(\d+).*',description).group(1))
+                        pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
+                        af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
+                        af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
+                if extract_type == 'PMPNN':
+                        command = f'silentextractspecific {pmpnn_file}' + description[:-8] + ' > extraction.log'
+
+                else:
+
+                    if os.path.isfile(af2_file_sol):
+                        command = f'silentextractspecific {af2_file_sol} '+ description + ' > extraction.log'  
+                        subprocess.run(command, cwd=hits_folder, shell=True)
+                    elif os.path.isfile(af2_file):
+                        command = f'silentextractspecific {af2_file} ' + description + ' > extraction.log'  
+                        subprocess.run(command, cwd=hits_folder, shell=True)
+                    else:
+                        print('The AF2 file required is not being found...')
+                        continue
                 #Get the fastas of the hits
                 fasta_file=extract_fasta_seq(os.path.join(hits_folder, description))
-                extract_dna_seq(input=fasta_file,output=dnaseq_folder, organism=organism, met=met,overhang_3=three_prime, overhang_5=five_prime, length=length, GC=GC )
-            generate_order_csv(extraction_list)
-            create_log_extraction(hits_folder, extraction_list, met, organism, three_prime, five_prime, length, GC)
-    return None
+                if DNA_seq == 'Yes':
+                    extract_dna_seq(input=fasta_file,output=dnaseq_folder, organism=organism, met=met,overhang_3=three_prime, overhang_5=five_prime, length=length, GC=GC,enzyme=enzyme )
+                #Record scoring data in the pdb
+                add_stats_to_pdb(description, working_dir)
+                print('File extracted')
+            if DNA_seq == 'Yes':
+                generate_order_csv(extraction_list,hits_folder)
+                create_log_extraction(hits_folder, extraction_list, met, organism, three_prime, five_prime, length, GC)
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True, dev_tools_hot_reload = False, use_reloader=True,
+    app.run_server(debug=False, dev_tools_hot_reload = False, use_reloader=True,
                    host=hostname, port=port_number)

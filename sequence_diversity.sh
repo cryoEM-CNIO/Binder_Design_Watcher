@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#Load the configuration
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source $SCRIPT_DIR/config.sh 
+
 # Load defaults 
 fr=1
 nseqs=1
@@ -34,11 +38,11 @@ fi
 ## Fix residues
 
 if [ $fixed != "None" ]; then 
-    python3 /apps/scripts/protein_design/scripts/fixing_residues.py --fixed "$fixed" --pdb_input "$input"
+    python3 "$MICRORUN_PATH/scripts/fixing_residues.py" --fixed "$fixed" --pdb_input "$input"
 fi
 
 ## create silent file
-/apps/rosetta/dl_binder_design/include/silent_tools/silentfrompdbs  "$input" > "initial_input.silent"
+"$SILENT_PATH/include/silent_tools/silentfrompdbs"  "$input" > "initial_input.silent"
 
 
 #while loop to generate diversity
@@ -65,9 +69,10 @@ while true;do
     
     fi
 
-    sbatch /apps/scripts/protein_design/slurm_submit/submit_sequence_diversity.sh --run "$i" --nseqs "$nseqs" --fr "$fr" --fixed "$fixed"
+    sbatch "$MICRORUN_PATH/slurm_submit/submit_sequence_diversity.sh" -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
+            --run "$i" --nseqs "$nseqs" --fr "$fr" --fixed "$fixed"
 
-    total_seqs_generated=$(($i*4*$nseqs))
+    total_seqs_generated=$(($i*4*$nseqs)) #This is patatero, we have to change it
     if [ $total_seqs_generated -gt $max ]; then 
         break 
     fi  
@@ -78,3 +83,4 @@ echo " #######################"
 echo "- DIVERSITY GENERATION CONCLUDED"
 echo "- ${total_seqs_generated} sequences generated in total"
 echo " #######################"
+

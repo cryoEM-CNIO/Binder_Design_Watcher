@@ -1,14 +1,8 @@
 #!/bin/bash
+#Load all variables
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source $SCRIPT_DIR/../config.sh
 
-# Number of desired cpus:
-#SBATCH --nodes=1
-#SBATCH -p RFD
-#SBATCH --open-mode=append
-#SBATCH --gres=gpu:1
-#SBATCH --exclusive
-#SBATCH --cpus-per-gpu=12
-#SBATCH -o slurm_logs/%j.out
-#SBATCH -e slurm_logs/%j.err
 
 ## Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -27,8 +21,6 @@ while [[ $# -gt 0 ]]; do
         -nsc|--noise_scale) noise_scale="$2" ; shift  ;;
         -ck|--ckp) ckp="$2" ; shift  ;; #Add the path to the checkpoint to add weight toward some fold
         -w|--node) node="$2" ; shift  ;; # Provide a specific name of a node to submit to this node with -w. If not provided it will be as usual.
-        -sp|--soluble_pMPNN) soluble="$2" ; shift  ;; #Add a pMPNNsol step to the non interacting interface to increase the solubility
-        -d|--distance) distance="$2" ; shift  ;; # Distance to fix residues in the interface
         -hn|--hits_number) hits_number="$2" ; shift ;;
         -cr|--core) core="$2" ; shift ;; # proportion of core residues to make the filtering
         -re|--residues) residues="$2" ; shift ;; # Residues to fix, useful for scaffolding
@@ -53,7 +45,7 @@ for GPU_ID in $GPUS_AVAILABLE; do
         # 1. RFD
         # ----------------------------------------
 
-        bash /apps/scripts/protein_design/master_scripts/rfd.sh \
+        bash $MICRORUN_PATH/microrun/master_scripts/rfd.sh \
             --run "$run" --t "$t" \
             --input_pdb "$input" --contigmap_descriptor "$rfd_contigs" \
             --designs_n "$rfd_ndesigns" --noise_steps "$noise_steps" \
@@ -65,20 +57,20 @@ for GPU_ID in $GPUS_AVAILABLE; do
         # 2. Aligning + filtering
         # --------------------------------------------
 
-        bash /apps/scripts/protein_design/master_scripts/aligning_filtering.sh --template "$template" --run "$run" --t "$t" --core "$core" --residues "$residues" > "$LOG_DIR/aligning_filtering.out" 2> "$LOG_DIR/aligning_filtering.err"
+        bash $MICRORUN_PATH/microrun/master_scripts/aligning_filtering.sh --template "$template" --run "$run" --t "$t" --core "$core" --residues "$residues" > "$LOG_DIR/aligning_filtering.out" 2> "$LOG_DIR/aligning_filtering.err"
         wait
         # --------------------------------------------
         # 3 pMPNN
         # --------------------------------------------
 
-        bash /apps/scripts/protein_design/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --soluble "$soluble" --distance "$distance" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
+        bash $MICRORUN_PATH/microrun/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles"  > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
         wait
         
         # --------------------------------------------
         # 4 Scoring(AF2IG + PyRosetta)
         # --------------------------------------------
 
-        bash /apps/scripts/protein_design/master_scripts/scoring.sh --run "$run" --t "$t" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
+        bash $MICRORUN_PATH/microrun/master_scripts/scoring.sh --run "$run" --t "$t" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
         wait
     ) &
     ((t=t+1))
@@ -88,4 +80,4 @@ wait
 # 5 Finish Microrun
 # --------------------------------------------
 
-bash /apps/scripts/protein_design/master_scripts/ending.sh --number "$hits_number" --run "$run"
+bash $MICRORUN_PATH/microrun/master_scripts/ending.sh --number "$hits_number" --run "$run"

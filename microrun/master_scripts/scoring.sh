@@ -11,9 +11,10 @@ while [[ $# -gt 0 ]]; do
     shift
 done
 
-source /apps/profile.d/load_all.sh
-conda activate dl_binder_design
-export PYTHONNOUSERSITE=1
+#Load all variables
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source $SCRIPT_DIR/../config.sh
+conda activate $AF2_ENV
 
 machine=`hostname`
 echo "Current machine $machine"
@@ -28,10 +29,10 @@ input_scoring=`echo "$input_silent" | sed s'#\.silent#_out_af2.silent#'`
 
 echo "Running AF2 on $af2_in"
 
-python3 -u /apps/rosetta/dl_binder_design/af2_initial_guess/predict_cutre.py -silent "$af2_in" -outsilent "$af2_out" -scorefilename "$af2_score"  -checkpoint_name "$af2_point" -jsonfilename "$af2_json"
+python3 -u $AF2IG_PATH/af2_initial_guess/predict_cutre.py -silent "$af2_in" -outsilent "$af2_out" -scorefilename "$af2_score"  -checkpoint_name "$af2_point" -jsonfilename "$af2_json"
 
 echo "Running_scoring on $input_scoring"
-python3 /apps/scripts/protein_design/scripts/scoring_tools.py --silent "$input_scoring" --run_number "$run"
+python3 $MICRORUN_PATH/microrun/scripts/protein_design/scripts/scoring_tools.py --silent "$input_scoring" --run_number "$run"
 
 echo "done"
 

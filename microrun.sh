@@ -1,5 +1,8 @@
 #! /bin/bash
-source /apps/profile.d/load_all.sh
+
+#Get script dir and load all the variables
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source $SCRIPT_DIR/config.sh 
 
 # Master script for deep searches in microruns
 
@@ -11,12 +14,12 @@ pmp_nseqs=1
 rfd_ndesigns=10
 pmp_relax_cycles=1
 noise_scale=1
-ckp="/apps/rosetta/RFDifussion/models/Complex_base_ckpt.pt"
+ckp="$RFD_PATH/models/Complex_base_ckpt.pt"
 node=''
 soluble="False"
 distance=10
 hits_number=100
-core=0.05 #this is a bit ad-hoc, requires further investigation
+core=0.05
 residues=None
 
 
@@ -40,7 +43,7 @@ while [[ $# -gt 0 ]]; do
         -d|--distance) distance="$2" ; shift  ;; # Distance to fix residues in the interaface
         -hn|--hits_number) hits_number="$2" ; shift ;;
         -cr|--core) core="$2" ; shift ;; # Proportion of core residues to make the filtering
-        -re|--residues) residues="$2" ; shift ;; #Residues index to fix, useful for scaffolding 
+        -re|--residues) residues="$2" ; shift ;; #Residues index to fix, useful for scaffolding
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift  # Shift past the current argument
@@ -67,7 +70,7 @@ fi
 
 ## Prepare Folder & Variables
 echo "Preparing JSON to save the run variables"
-python3 /apps/scripts/protein_design/scripts/json_variable_generation.py --input "$input" --template "$template" --max_threads "$max" --rfd_contigs "$rfd_contigs" --rfd_hotspots "$rfd_hotspots" --rfd_ndesigns "$rfd_ndesigns" --pmp_nseqs "$pmp_nseqs" --pmp_relax_cycles "$pmp_relax_cycles" --partial_diff "$partial_diff" --noise_steps "$noise_steps" --noise_scale "$noise_scale" --ckp "$ckp" --soluble_pMPNN "$soluble" --distance "$distance" --core "$core" --residues "$residues"
+python3 $MICRORUN_PATH/microrun/scripts/json_variable_generation.py --input "$input" --template "$template" --max_threads "$max" --rfd_contigs "$rfd_contigs" --rfd_hotspots "$rfd_hotspots" --rfd_ndesigns "$rfd_ndesigns" --pmp_nseqs "$pmp_nseqs" --pmp_relax_cycles "$pmp_relax_cycles" --partial_diff "$partial_diff" --noise_steps "$noise_steps" --noise_scale "$noise_scale" --ckp "$ckp" --soluble_pMPNN "$soluble" --distance "$distance" --core "$core" --residues "$residues"
 
 old_i=1
 
@@ -95,9 +98,11 @@ while [ ! -f 'campaign_done' ]; do
     # Now that the condition is met or previous is 0, proceed to the following code
     fi  
 
-    sbatch -w "$node" /apps/scripts/protein_design/slurm_submit/submit_master.sh --input "$input" --template "$template" --run "$i" --rfd_contigs "$rfd_contigs" --rfd_ndesigns "$rfd_ndesigns" --pmp_nseqs "$pmp_nseqs" --pmp_relax_cycles "$pmp_relax_cycles" --partial_diff "$partial_diff" --noise_steps "$noise_steps" --noise_scale "$noise_scale" --ckp "$ckp" --soluble_pMPNN "$soluble" --distance "$distance" --core "$core" --residues "$residues" --hits_number "$hits_number" --rfd_hotspots "$rfd_hotspots" 
+sbatch -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
+       "$MICRORUN_PATH/microrun/slurm_submit/submit_master.sh" --input "$input" --template "$template" --run "$i" --rfd_contigs "$rfd_contigs" --rfd_ndesigns "$rfd_ndesigns" \
+       --pmp_nseqs "$pmp_nseqs" --pmp_relax_cycles "$pmp_relax_cycles" --partial_diff "$partial_diff" --noise_steps "$noise_steps" --noise_scale "$noise_scale" --ckp "$ckp" \
+       --core "$core" --residues "$residues" --hits_number "$hits_number" --rfd_hotspots "$rfd_hotspots"
 
-  
 done
 
 echo "Campaign finshed"
