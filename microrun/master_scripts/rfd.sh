@@ -2,7 +2,7 @@
 export HYDRA_FULL_ERROR=1
 
 #Load all variables
-SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+SCRIPT_DIR="$SLURM_SUBMIT_DIR"
 source $SCRIPT_DIR/../../config.sh
 conda activate $RFD_ENV
 
