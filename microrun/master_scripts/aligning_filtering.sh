@@ -1,10 +1,4 @@
 #!/bin/bash
-
-#Load all variables
-SCRIPT_DIR="$SLURM_SUBMIT_DIR"
-source $SCRIPT_DIR/../../config.sh
-conda activate $MICRORUN_ENV
-
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -14,11 +8,18 @@ while [[ $# -gt 0 ]]; do
         --run) run="$2" ; shift ;;
         --t) t="$2" ; shift ;;
         --core) core="$2" ; shift ;;
-        --residues) residues="$2" ; shift ;; 
+        --residues) residues="$2" ; shift ;;
+        --directory) directory="$2" ; shift ;; 
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift 
 done
+
+#Load all variables
+source $directory/config.sh
+conda activate $MICRORUN_ENV
+
+
 
 # Variables declaring
 silent_output="output/run_${run}/run_${run}_design_${t}_input.silent"

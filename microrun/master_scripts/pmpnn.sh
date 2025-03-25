@@ -1,15 +1,10 @@
 #!/bin/bash
 
-#Load all variables
-SCRIPT_DIR="$SLURM_SUBMIT_DIR"
-source $SCRIPT_DIR/../../config.sh
-conda activate $PMPNN_ENV
-
 while [[ $# -gt 0 ]]; do
     key="$1"
 
     case $key in
-
+        --directory) directory="$2" ; shift ;; 
         --run) run="$2" ; shift ;;
         --n_seqs) n_seqs="$2" ; shift ;;
         --relax_cycles) relax_cycles="$2" ; shift ;;
@@ -18,6 +13,10 @@ while [[ $# -gt 0 ]]; do
     esac
     shift # Shift past the current argument
 done
+
+#Load all variables
+source $directory/config.sh
+conda activate $PMPNN_ENV
 
 machine=`hostname`
 echo "Current machine $machine"

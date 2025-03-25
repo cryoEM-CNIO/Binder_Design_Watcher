@@ -1,9 +1,5 @@
 #!/bin/bash
 
-#Load all variables
-SCRIPT_DIR="$SLURM_SUBMIT_DIR"
-source $SCRIPT_DIR/../../config.sh
-conda activate $MICRORUN_ENV
 
 # Parse command-line arguments  
 while [[ $# -gt 0 ]]; do
@@ -11,10 +7,18 @@ while [[ $# -gt 0 ]]; do
     case $key in
         --number) number="$2" ; shift ;;
         --run) run="$2" ; shift ;;
+        --directory) directory="$2" ; shift ;; 
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift # Shift past the current argument
 done
+
+#Load all variables
+
+source $directory/config.sh
+conda activate $MICRORUN_ENV
+
+
 
 # Display the parsed values
 machine=`hostname`
