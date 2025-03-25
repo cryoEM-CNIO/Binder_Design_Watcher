@@ -97,6 +97,8 @@ On the bottom left, we have a datatable in which each run progression is detaile
 
 On the bottom right we have a `STOP CAMPAIGN` button. This button creates a `campaign_done` file in the microrun directory, prompting that the microrun stops (all the runs already sent still run until finished)
 
+![alt figure](./figures/Slide1.jpg)
+
 #### Extraction
 
 The second tab is the extraction tab. In this tab you can see the structures of those designs that can be consider hits (according to the metrics you impose in the Live Visualization tab).
@@ -114,6 +116,8 @@ On the bottom of the tab you can select the extraction preferences, among them:
 - Select enzymes to check for enzyme restriction sites and modify them to avoid undesired cuts
 
 Finally the extract hits button allows you to extract the hits.
+
+![alt figure](./figures/Slide2.jpg)
 
 ### OTHER SCRIPTS
 
@@ -237,8 +241,8 @@ There are several metrics to score your binder. The more general ones (and proba
 
 - *interface_unsat_hbonds*: Number of unsatisfied buried hydrogen bonds at the interface. Recommended to be lower than 4. WARNING! I have to slightly change the code from BindCraft, maybe this computation has changed, not 100%
 
-- *RMSD*: RMSD between the design by RFD and the prediction by AF2. Values below 2 A are probably accurate enough, althoigh there is no data about where to put the threshold
-- *ipSAE*: Metric developed by Dunbrack and explained [here](https://www.biorxiv.org/content/10.1101/2025.02.10.637595v1.full.pdf).Although more extensive studies should be made, anything over 0.6 probably can be considered a true positive
+- *RMSD*: RMSD between the design by RFD and the prediction by AF2. Values below 2 A are probably accurate enough, although there is no data about where to put the threshold
+- *ipSAE*: Metric developed by Dunbrack and explained [here](https://www.biorxiv.org/content/10.1101/2025.02.10.637595v1.full.pdf). Although more extensive studies should be made, anything over 0.6 probably can be considered a true positive
  
 Most of this filters are "inspired" from the ones published by Martin Pacesa for BindCraft. Thank you! (Highly recommend checking their work!)
 

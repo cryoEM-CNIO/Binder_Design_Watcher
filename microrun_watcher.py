@@ -115,7 +115,6 @@ def serve_layout():
     html.Div([
         dcc.Tabs([
             dcc.Tab(label='Live Watcher', children=[
-                html.Button('Make CSVs', id='execute-csv', n_clicks=0, style=bt_style),
                 html.Div(
                     [
                         html.Div(
