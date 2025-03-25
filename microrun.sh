@@ -108,7 +108,7 @@ while [ ! -f 'campaign_done' ]; do
 sbatch -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
        "$MICRORUN_PATH/microrun/slurm_submit/submit_master.sh" --input "$input" --template "$template" --run "$i" --rfd_contigs "$rfd_contigs" --rfd_ndesigns "$rfd_ndesigns" \
        --pmp_nseqs "$pmp_nseqs" --pmp_relax_cycles "$pmp_relax_cycles" --partial_diff "$partial_diff" --noise_steps "$noise_steps" --noise_scale "$noise_scale" --ckp "$ckp" \
-       --core "$core" --residues "$residues" --hits_number "$hits_number" --rfd_hotspots "$rfd_hotspots"
+       --core "$core" --residues "$residues" --hits_number "$hits_number" --rfd_hotspots "$rfd_hotspots" --directory "$SCRIPT_DIR"
 
 done
 
