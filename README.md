@@ -207,9 +207,20 @@ The microrun script admits different flags for binder design. Many of them have 
 - `--distance`: Distance from the protein-protein interface to start redesigning the sequnce usign pMPNN soluble. Default=10
 - `--hits_number`: Number of designs which pass the filtering metrics after which the process stops. Default=100
 - `--core`: Threshold of binder fraction core residues for filtering (filtering no plausible structures like most of two helices bundles).  Default=0.05
-- `--residues`: List of residues from the design you want to fix. Useful in the case of scaffolds, to avoid full pMPNN binder sequence reconstruction. Default=""
+- `--residues`: List of residues from the design you want to fix. Useful in the case of scaffolds, to avoid full pMPNN binder sequence reconstruction. It should be provided between brackets, separating residues with commas and defining ranges with - For example: "[1,3,10-20]". Default="None"
 
 `Note: The core threshold is extracted using F1-score from a 1000 design datasets, it should be improved, not too strict`
+
+### SEQUENCE DIVERSITY FLAGS
+***The mandatory flags are:**
+- `--input`: Path to the target structure
+- `--threads`: Number of *runs* to be executed in parallel (each *run* is one node occupied)
+- `--max`: Total number of sequences to be generated
+**The optional flags are:**
+- `--residues`: List of residues from the design you want to fix. It should be provided between brackets, separating residues with commas and defining ranges with - For example: "[1,3,10-20]" Default="None"
+- `--fr`: Number of Fast Relax cycles to perform (_No more than one). Default=1
+- `--nseqs`: Number of sequences to generate per run. Default=1
+`No more than 1 sequence can be generated if the FR is set to 1`
 
 ## ALTERNATIVE SCORING METRICS
 
