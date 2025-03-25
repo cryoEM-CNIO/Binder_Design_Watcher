@@ -1,20 +1,20 @@
 #!/bin/bash
 
-#Load all variables
-SCRIPT_DIR="$SLURM_SUBMIT_DIR"
-source $SCRIPT_DIR/../../config.sh
-conda activate $AF2_ENV
-
 while [[ $# -gt 0 ]]; do
     key="$1"
 
     case $key in
         --t) t="$2" ; shift ;;
+        --directory) directory="$2" ; shift ;; 
         --run) run="$2" ; shift ;;
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift
 done
+
+#Load all variables
+source $directory/config.sh
+conda activate $AF2_ENV
 
 machine=`hostname`
 echo "Current machine $machine"

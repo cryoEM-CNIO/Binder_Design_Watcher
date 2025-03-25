@@ -1,7 +1,4 @@
 #!/bin/bash
-#Load all variables
-SCRIPT_DIR="$SLURM_SUBMIT_DIR"
-source $SCRIPT_DIR/../../config.sh
 
 
 ## Parse command-line arguments
@@ -24,10 +21,16 @@ while [[ $# -gt 0 ]]; do
         -hn|--hits_number) hits_number="$2" ; shift ;;
         -cr|--core) core="$2" ; shift ;; # proportion of core residues to make the filtering
         -re|--residues) residues="$2" ; shift ;; # Residues to fix, useful for scaffolding
+        -d|--directory) directory="$2" ; shift ;;
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift  # Shift past the current argument
 done
+
+#Load all variables
+source $directory/config.sh
+
+
 
 # Get available GPUs from SLURM
 GPUS_AVAILABLE=$(nvidia-smi --query-gpu=index --format=csv,noheader | tr '\n' ' ')

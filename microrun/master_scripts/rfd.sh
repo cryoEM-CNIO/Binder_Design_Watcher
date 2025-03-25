@@ -1,10 +1,6 @@
 #!/bin/bash
 export HYDRA_FULL_ERROR=1
 
-#Load all variables
-SCRIPT_DIR="$SLURM_SUBMIT_DIR"
-source $SCRIPT_DIR/../../config.sh
-conda activate $RFD_ENV
 
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -21,10 +17,17 @@ while [[ $# -gt 0 ]]; do
         -nst|--noise_steps) noise_steps="$2" ; shift ;;
         -nsc|--noise_scale) noise_scale="$2" ; shift ;;
         --r|--residues) residues="$2"; shift ;; 
+        --directory) directory="$2" ; shift ;; 
+
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift 
 done
+
+#Load all variables
+source $directory/config.sh
+conda activate $RFD_ENV
+
 
 #Define variables
 output_prefix="output/run_${run}/run_${run}_design"
