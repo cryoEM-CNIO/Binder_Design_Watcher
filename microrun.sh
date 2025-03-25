@@ -5,7 +5,7 @@ SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 source $SCRIPT_DIR/config.sh 
 
 #Checking everything
-
+echo $SCRIPT_DIR
 echo $MICRORUN_PATH
 echo $RFD_PATH
 echo $PMPNN_PATH
