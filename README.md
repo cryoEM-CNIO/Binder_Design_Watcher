@@ -150,6 +150,7 @@ As it happens with RFD, this installs PyRosetta, which requires a license for co
 
 After cloning the respository and installing the environment, you have to set all your local information in **config.sh** (Paths to the RFD, pMPNN and AF2IG directory, environments names and slurm configuration).  
 
+Finally, we use slightly modified versions of both AF2IG and pMPNN to get the json files of the scorings (so we can compute the CUTRE and the iPSAE) and avoid some problems with the coupled backbone generation in pMPNN. These modified versions are provided in the **scripts** folder and named with the suffix **_cutre**. To run the microrun you should add these scripts to the correspondant folder ()
 ## EXAMPLE USAGE
 
 To generate binders with microrun.sh, do

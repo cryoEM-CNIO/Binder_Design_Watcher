@@ -1,4 +1,17 @@
 #!/usr/bin/env python3 
+'''
+Script to fix residues in the case for sequence diversity. Uses the function define in biopython_align.py
+
+Input: 
+
+--fixed: List of residues to be fixed. Formatted as "[1,3,10-20]
+--pdb_input: Path to the pdb input
+
+Output:
+
+The PDB inputted is modified so after the last TER remarks fixing each of the defined residues is added
+'''
+
 
 import argparse
 from biopython_align import add_fixed_residues

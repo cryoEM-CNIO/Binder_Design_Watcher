@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#Load all variables
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+source $SCRIPT_DIR/../../config.sh
+conda activate $AF2_ENV
+
 while [[ $# -gt 0 ]]; do
     key="$1"
 
@@ -10,11 +15,6 @@ while [[ $# -gt 0 ]]; do
     esac
     shift
 done
-
-#Load all variables
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-source $SCRIPT_DIR/../config.sh
-conda activate $AF2_ENV
 
 machine=`hostname`
 echo "Current machine $machine"

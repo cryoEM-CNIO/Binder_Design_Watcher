@@ -5,7 +5,8 @@ Script to calculate the contigs.contigsmap that RFD needs.
 
 Input:
 
--i|--input --> pdb file of the input
+-i|--input : pdb file path of the input
+-pd|--partial_diff :  Is the contigs for partial diffusion or for normal binder generation ? (True or False)
 
 Output:
 

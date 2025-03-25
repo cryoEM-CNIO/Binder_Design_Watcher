@@ -39,10 +39,9 @@ pip install CodonTransformer
 pip install dash
 pip install dash-bio
 pip install biopython
-pip install pandas
 
 # make sure all required packages were installed
-required_packages=(pyrosetta codontransformer dash dash-bio biopython pandas)
+required_packages=(pyrosetta codontransformer dash dash-bio biopython )
 missing_packages=()
 
 # Check each package

@@ -125,11 +125,3 @@ print('\n')
 print('METRICS PER CLUSTER SAVED AT means_by_cluster.csv\n')
 print('HITS AND CLUSTER SAVED AT hits_clustered.csv\n')
 print('PROTEIN PDBS PER CLUSTER SAVED AT clusterX.txt')
-
-'''
-PROBLEMS TO WORK AT:
-
--- Add it to monitoring ?? Filtering the hits by cluster and look at its distribution
-
--- The number of clusters to make is smth to work on
-'''

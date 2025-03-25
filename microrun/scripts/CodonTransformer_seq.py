@@ -1,3 +1,18 @@
+#!/usr/bin/env python3 
+
+'''
+Script to use Codon Transformer to extract the sequence of the hits designs
+
+Input:
+
+--protein: Protein sequence that wants to be reverse translate
+--organism: Organism to which the sequence must be optimized
+
+Output:
+
+print(dna_seq): DNA sequence optimized for the given organism
+'''
+
 #modules for CodonTransformer
 import torch
 import argparse

@@ -1,8 +1,15 @@
 #! /bin/bash
 
 #Get script dir and load all the variables
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 source $SCRIPT_DIR/config.sh 
+
+#Checking everything
+
+echo $MICRORUN_PATH
+echo $RFD_PATH
+echo $PMPNN_PATH
+
 
 # Master script for deep searches in microruns
 

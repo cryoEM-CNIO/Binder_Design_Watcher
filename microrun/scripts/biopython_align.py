@@ -37,14 +37,13 @@ warnings.simplefilter('ignore', BiopythonWarning)
 ###############################################
 #-------------- PDB ORDER FUNCTION -----------#
 ###############################################
-
+'''RFD needs the pdb to be ordered to use it. This functions make sure the PDB is correctly ordered'''
 def order_pdb(pdb_file):
     res_chains=[]
     chain_dictionary={}
     with open(pdb_file, 'r') as file:
         for line in file.readlines():
             if line.startswith('ATOM'):
-                res_numeration=line[22:26]
                 res_chain=line[22]
                 if res_chain not in res_chains:
                     res_chains.append(res_chain)
@@ -62,7 +61,7 @@ def order_pdb(pdb_file):
 ###############################################
 #-------------- ALIGNMENT FUNCTIONS ----------#
 ###############################################
-
+'''This set of functions do all the alignments needed to replace your target with a larger target to perform the sequence assignment and scoring'''
 #Function to extract the fasta seqs of the hits 
 def extract_seq(input_file,chain_selected,structure):
     #Extract sequence 
@@ -74,12 +73,13 @@ def extract_seq(input_file,chain_selected,structure):
                 modified_seq = Seq(str(sequence).replace("X", "-"))
                 return modified_seq
 
-
-def seq_alignment(template, moving):
+#Function to aligne the sequence of the template and target
+def seq_alignment(template, moving): 
     aligner=Align.PairwiseAligner()
     alignments =aligner.align(template, moving)
     return alignments
 
+#Function to perform the structural alignment
 def structure_alignment(moving, template, chain):
 
     pdb_parser= PDBParser(PERMISSIVE=1)
@@ -136,13 +136,16 @@ def structure_alignment(moving, template, chain):
 #################################################
 #--------------SUBSTITUTION FUNCTIONS-----------#
 #################################################
+'''Functions to substitute the target use in RFD with the template for the rest of the process'''
 
+# Function to remove the chain B from the pdb
 def remove_chain(structure, chain_id):
     for model in structure:
         for chain in list(model):
             if chain.id == chain_id:
                 model.detach_child(chain.id)
 
+#Function to add the template as new chain in the pdb file 
 def substitute_chain(pdb_path, chain, template):
     pdb_id = os.path.splitext(os.path.basename(pdb_path))[0]
     
@@ -167,7 +170,9 @@ def substitute_chain(pdb_path, chain, template):
 #################################################
 #--------------- FILTER FUNCTIONS -------------#
 #################################################
+'''These are a series of functions we use to filter the results from the initial backbone generation and use more efficiently computational resources'''
 
+#This function discards the binder if it makes steric clashes with the template once the chains are substituted
 def check_clashes(structure):
     structure_binder=structure[0]['A']
     structure_target=structure[0]['B']
@@ -188,6 +193,7 @@ def check_clashes(structure):
     print('NO CLASHES DETECTED')
     return 1
 
+#This function discards those designs which lacks a large enough hydrophobic core
 def filter_by_shapes(pdb_file, core):
     '''
     Okay, this approximation is based on PyRosetta
@@ -213,6 +219,7 @@ def filter_by_shapes(pdb_file, core):
         print(f'The design {pdb_id} has a large enough core')
         return 1
 
+#This function filters the designs based on dssp. If the designs are predicted to have a single helix or a hairpin structure they are discarded
 def filter_by_dssp(pdb_file):
     
     #define the pattern
@@ -247,6 +254,9 @@ def filter_by_dssp(pdb_file):
 #################################################
 #----------------- SAVE FUNCTIONS --------------#
 #################################################
+
+'''Function to save the new pdb file with the substituted chain. Only those that pass the filtering are saved'''
+
 def save_protein_substituted(structure,output_dir):
     pdb_id=structure.get_id()
     output_path = os.path.join(output_dir, f"{pdb_id}_substituted.pdb")
@@ -259,6 +269,7 @@ def save_protein_substituted(structure,output_dir):
 #################################################
 #----------------- FIXED FUNCTIONS -------------#
 #################################################
+'''Function to add the fixed remark to the pdbs in order to fix some residues during pMPNN'''
 
 def add_fixed_residues(output_path,residues):
     residues_to_fix=[]

@@ -133,10 +133,8 @@ def compute_rosetta_metrics(pose,interface):
     ##Calculate things
     interface_score=interface_analyzer.get_all_data()
     interface_sc=interface_score.sc_value #Shape complementarity
-    interface_dG=interface_analyzer.get_interface_dG() #Interface dG
     interface_dsasa=interface_analyzer.get_interface_delta_sasa() #Interface dSASA
     interface_packstat=interface_analyzer.get_interface_packstat()#Interface packstat score (above 0.65 considered good enough)
-    interface_dG_SASA_ratio=interface_score.dG_dSASA_ratio * 100 #Normalised energy for interacting surface
     interface_hbonds=interface_score.interface_hbonds
     buns_filter=pyrosetta.rosetta.protocols.rosetta_scripts.XmlObjects.static_get_filter('<BuriedUnsatHbonds report_all_heavy_atom_unsats="true" scorefxn="scorefxn" ignore_surface_res="false" use_ddG_style="true" dalphaball_sasa="0" probe_radius="1.1" burial_cutoff_apo="0.2" confidence="0" />')
     interface_delta_unsat_hbonds = buns_filter.report_sm(pose)
@@ -149,7 +147,7 @@ def compute_rosetta_metrics(pose,interface):
     SAP_score=SAPscm.calculate(pose)
 
 
-    return interface_sc, interface_dG, interface_dsasa, interface_packstat, interface_dG_SASA_ratio, interface_hbonds, interface_delta_unsat_hbonds, SAP_score 
+    return interface_sc, interface_dsasa, interface_packstat, interface_hbonds, interface_delta_unsat_hbonds, SAP_score 
 
 def compute_interface_hydrophobicity(pose,close_residues_binder):
     '''Function to compute the propotion of hydrophobic residues the binder has in the interface'''
@@ -298,11 +296,9 @@ if __name__== '__main__':
         'close_residues_target':[],
         'close_residues_binder':[],
         'CUTRE':[],
-        'dG':[],
         'dSASA':[],
         'Shape_complementarity':[],
         'Packstat':[],
-        'dG_SASA_ratio':[],
         'length':[],
         'SAP':[],
         'binder_int_hyd':[],
@@ -328,7 +324,7 @@ if __name__== '__main__':
             print('CUTRE did not work')
         
         # Compute Rosetta operations
-        shape_complementarity, dG, dSASA, PackStat, dG_SASA,hbonds, unsat_hbonds, SAP_score=compute_rosetta_metrics(pose, interface)
+        shape_complementarity, dSASA, PackStat,hbonds, unsat_hbonds, SAP_score=compute_rosetta_metrics(pose, interface)
 
         # Binder Interface Hydrophobicity
         binder_interface_hydrophobicity=compute_interface_hydrophobicity(pose,close_residues_binder)
@@ -353,11 +349,9 @@ if __name__== '__main__':
         binding_analysis_dict['length'].append(length)
         binding_analysis_dict['CUTRE'].append(CUTRE)
         binding_analysis_dict['description'].append(protein_name)
-        binding_analysis_dict['dG'].append(dG)
         binding_analysis_dict['dSASA'].append(dSASA)
         binding_analysis_dict['Shape_complementarity'].append(shape_complementarity)
         binding_analysis_dict['Packstat'].append(PackStat)
-        binding_analysis_dict['dG_SASA_ratio'].append(dG_SASA)
         binding_analysis_dict['SAP'].append(SAP_score)
         binding_analysis_dict['binder_int_hyd'].append(binder_interface_hydrophobicity)
         binding_analysis_dict['binder_surf_hyd'].append(surface_hydrophobicity)

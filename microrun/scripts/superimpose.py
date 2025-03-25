@@ -2,6 +2,8 @@ import pyrosetta
 from pyrosetta import rosetta
 from types import ModuleType
 
+'''This code is from EH Baugh. Needed to perform structural alignments in pyRosetta'''
+
 prc: ModuleType = pyrosetta.rosetta.core
 prp: ModuleType = pyrosetta.rosetta.protocols
 pru: ModuleType = pyrosetta.rosetta.utility

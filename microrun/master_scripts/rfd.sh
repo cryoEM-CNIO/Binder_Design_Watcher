@@ -1,5 +1,11 @@
 #!/bin/bash
 export HYDRA_FULL_ERROR=1
+
+#Load all variables
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+source $SCRIPT_DIR/../../config.sh
+conda activate $RFD_ENV
+
 # Parse command-line arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
@@ -37,11 +43,6 @@ echo "  - Partial Diffusion: $partial_diff"
 echo "  - noise scale (only if PD): $noise_scale"
 echo "  - noise_steps (only if PD): $noise_steps"
 echo "  - residues fixed: $residues"
-
-#Load all variables
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-source $SCRIPT_DIR/../config.sh
-conda activate $RFD_ENV
 
 # Run!
 if [ $partial_diff = "True" ]; then
