@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Load all variables
-SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+SCRIPT_DIR="$SLURM_SUBMIT_DIR"
 source $SCRIPT_DIR/../../config.sh
 conda activate $AF2_ENV
 
