@@ -83,4 +83,4 @@ wait
 # 5 Finish Microrun
 # --------------------------------------------
 
-bash $MICRORUN_PATH/microrun/master_scripts/ending.sh --number "$hits_number" --run "$run"
+bash $MICRORUN_PATH/microrun/master_scripts/ending.sh --number "$hits_number" --run "$run" --directory "$directory"
