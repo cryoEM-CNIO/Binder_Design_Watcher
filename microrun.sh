@@ -71,7 +71,7 @@ fi
 ## Contigs Getter, automatic for partial diffusion
 
 if [ $partial_diff = "True" ]; then 
-        rfd_contigs=$($MICRORUN_PATH/scripts/contigs_map_getter.py --input $input --partial_diff $partial_diff)
+        rfd_contigs=$(python3 $MICRORUN_PATH/scripts/contigs_map_getter.py --input "$input" --partial_diff "$partial_diff")
         echo "$rfd_contigs"
 fi
 
