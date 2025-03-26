@@ -47,7 +47,7 @@ def group_consecutive_numbers(numbers,chain):
         range_A=[]
         if numbers:
             end=len(numbers)
-            range_A.append(f'A{end}-{end}/0 ')
+            range_A.append(f'{end}-{end}/0 ')
         return ''.join(range_A)
     if chain == 'B':
         range_B=[]
