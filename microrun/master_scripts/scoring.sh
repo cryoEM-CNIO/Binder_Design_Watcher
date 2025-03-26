@@ -32,7 +32,7 @@ echo "Running AF2 on $af2_in"
 python3 -u $AF2IG_PATH/af2_initial_guess/predict_cutre.py -silent "$af2_in" -outsilent "$af2_out" -scorefilename "$af2_score"  -checkpoint_name "$af2_point" -jsonfilename "$af2_json"
 
 echo "Running_scoring on $input_scoring"
-python3 $MICRORUN_PATH/microrun/scripts/protein_design/scripts/scoring_tools.py --silent "$input_scoring" --run_number "$run"
+python3 $MICRORUN_PATH/microrun/scripts/scoring_tools.py --silent "$input_scoring" --run_number "$run"
 
 echo "done"
 
