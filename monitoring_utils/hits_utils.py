@@ -243,7 +243,7 @@ def extract_dna_seq(input, output,organism, met, overhang_5 , overhang_3, length
         random_sequence_5,random_sequence_3= RandomSequenceGenerator(length_to_add, GC)
 
 
-        full_seq=f'{overhang_5}' + f'{random_sequence_5}' + f'{dna_seq}'+f'{random_sequence_3}' + f'{overhang_3}'
+        full_seq=f'{random_sequence_5}'+f'{overhang_5}' + f'{dna_seq}'+ f'{overhang_3}' + f'{random_sequence_3}'
         full_seq,all_ok=check_enzyme_cut(enzyme,dna_seq)
 
     ## Open the RevTrans fasta_file
@@ -258,7 +258,7 @@ def extract_dna_seq(input, output,organism, met, overhang_5 , overhang_3, length
     
 
 
-def RandomSequenceGenerator(length, GC=50):
+def RandomSequenceGenerator(length, avoid_seqs,GC=50):
     '''
     Generate random DNA sequences with the desired GC proportion. The sequence is added symmetrically 
     at the 3' and 5' ends, with half the required length at each terminus.
@@ -266,6 +266,7 @@ def RandomSequenceGenerator(length, GC=50):
     Input:
         length (int): Length of the random sequence to add. It is split equally between 5' and 3' ends.
         GC (float): Desired GC content in percentage (default=50).
+        Avoid_seqs (list): List of sequences to avoid in the random sequence generation.
 
     Output:
         tuple: (sequence_5, sequence_3) Random sequences for the 5' and 3' ends.
@@ -282,24 +283,29 @@ def RandomSequenceGenerator(length, GC=50):
     length_5 = (length + 1) // 2  # Round up for the 5' end
     length_3 = length // 2       # Remaining for the 3' end
     
-    
     # Initialize sequences
-    sequence_5 = []
-    sequence_3 = []
+    seqs_avoided=False
+    while seqs_avoided==False:
+        # Initialize sequences
+        sequence_5 = []
+        sequence_3 = []
 
-    print(f'Creating a random sequence {length} residues long')
-    
-    # Generate sequence for the 3' end
-    for _ in range(length_3):
-        sequence_3.append(random.choices(['a', 'g', 't', 'c'], weights=nucleotide_weights)[0])
+        print(f'Creating a random sequence {length} residues long')
+        # Generate sequence for the 3' end
+        for _ in range(length_3):
+            sequence_3.append(random.choices(['a', 'g', 't', 'c'], weights=nucleotide_weights)[0])
 
-    # Generate sequence for the 5' end
-    for _ in range(length_5):
-        if len(sequence_5) >= 2 and sequence_5[-2:] == ['a', 't']:  # Avoid ATG motif
-            sequence_5.append(random.choices(['a', 'g', 't', 'c'], weights=[AT_prob, 0, AT_prob, GC_prob * 2])[0])
-        else:
+        # Generate sequence for the 5' end
+        for _ in range(length_5):
             sequence_5.append(random.choices(['a', 'g', 't', 'c'], weights=nucleotide_weights)[0])
-    
+        
+        for seq in avoid_seqs:
+            if seq.lower() in ''.join(sequence_5) or seq.lower() in ''.join(sequence_3):
+                print(f'Sequence to avoid {seq} in the random sequence, starting again: :(')
+                seqs_avoided=False
+            else:
+                seqs_avoided=True
+                    
     # Convert list to string and return
     return ''.join(sequence_5), ''.join(sequence_3)
 

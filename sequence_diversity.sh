@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#Load the configuration
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+#Get script dir and load all the variables
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 source $SCRIPT_DIR/config.sh 
-
+conda activate $MICRORUN_ENV 
 # Load defaults 
 fr=1
 nseqs=1
@@ -70,7 +70,7 @@ while true;do
     fi
 
     sbatch "$MICRORUN_PATH/slurm_submit/submit_sequence_diversity.sh" -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
-            --run "$i" --nseqs "$nseqs" --fr "$fr" --fixed "$fixed"
+            --run "$i" --nseqs "$nseqs" --fr "$fr" --fixed "$fixed" --directory "$SCRIPT_DIR"
 
     total_seqs_generated=$(($i*4*$nseqs)) #This is patatero, we have to change it
     if [ $total_seqs_generated -gt $max ]; then 

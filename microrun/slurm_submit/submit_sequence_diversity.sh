@@ -1,11 +1,6 @@
 #!/bin/bash
 
 # Display the parsed values
-#Load all variables
-SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-source $SCRIPT_DIR/../config.sh
-conda activate watcher
-
 hits_number=10000
 ## Parse command-line arguments
 while [[ $# -gt 0 ]]; do
@@ -16,16 +11,22 @@ while [[ $# -gt 0 ]]; do
         -fr|--fr) pmp_relax_cycles="$2" ; shift  ;;   
         -hn|--hits_number) hits_number="$2" ; shift ;;
         -f|--fixed) fixed="$2" ; shift ;; 
+        -d|--directory) directory="$2" ; shift ;;
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift  # Shift past the current argument
 done
 
+#Load all variables
+source $directory/config.sh
+conda activate $MICRORUN_ENV 
 # Get available GPUs from SLURM
 GPUS_AVAILABLE=$(nvidia-smi --query-gpu=index --format=csv,noheader | tr '\n' ' ')
 echo "GPUs available: $GPUS_AVAILABLE"
 
 t=1
+
+
 
 for GPU_ID in $GPUS_AVAILABLE; do
     echo $GPU_ID
@@ -44,13 +45,13 @@ for GPU_ID in $GPUS_AVAILABLE; do
         # 2 pMPNN
         # --------------------------------------------
 
-        bash $MICRORUN_PATH/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --soluble "$soluble" --distance "$distance" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
+        bash $MICRORUN_PATH/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --directory "$directory" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
         wait
         # --------------------------------------------
         # 3 Scoring(AF2IG + PyRosetta)
         # --------------------------------------------
 
-        bash $MICRORUN_PATH/master_scripts/scoring.sh --run "$run" --t "$t" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
+        bash $MICRORUN_PATH/master_scripts/scoring.sh --run "$run" --t "$t" --directory "$directory" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
         wait
     ) &
     ((t=t+1))
