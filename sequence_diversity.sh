@@ -71,7 +71,7 @@ while true;do
     
     fi
 
-    sbatch "$MICRORUN_PATH/microrun/slurm_submit/submit_sequence_diversity.sh" -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
+    sbatch $MICRORUN_PATH/microrun/slurm_submit/submit_sequence_diversity.sh -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
             --run "$i" --nseqs "$nseqs" --fr "$fr" --fixed "$fixed" --directory "$SCRIPT_DIR"
 
     total_seqs_generated=$(($i*4*$nseqs)) #This is patatero, we have to change it
