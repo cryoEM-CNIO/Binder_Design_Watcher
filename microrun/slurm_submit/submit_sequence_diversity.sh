@@ -45,13 +45,13 @@ for GPU_ID in $GPUS_AVAILABLE; do
         # 2 pMPNN
         # --------------------------------------------
 
-        bash $MICRORUN_PATH/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --directory "$directory" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
+        bash $MICRORUN_PATH/microrun/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --directory "$directory" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
         wait
         # --------------------------------------------
         # 3 Scoring(AF2IG + PyRosetta)
         # --------------------------------------------
 
-        bash $MICRORUN_PATH/master_scripts/scoring.sh --run "$run" --t "$t" --directory "$directory" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
+        bash $MICRORUN_PATH/microrun/master_scripts/scoring.sh --run "$run" --t "$t" --directory "$directory" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
         wait
     ) &
     ((t=t+1))
@@ -61,4 +61,4 @@ wait
 # 4 Finish Microrun
 # --------------------------------------------
 
-bash $MICRORUN_PATH/master_scripts/ending.sh --number "$hits_number" --run "$run"
+bash $MICRORUN_PATH/microrun/master_scripts/ending.sh --number "$hits_number" --run "$run"
