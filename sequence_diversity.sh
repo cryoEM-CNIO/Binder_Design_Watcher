@@ -19,6 +19,7 @@ while [[ $# -gt 0 ]]; do
         --fixed) fixed="$2" ; shift ;;
         --nseqs) nseqs="$2" ; shift ;;
         --fr) fr="$2" ; shift ;;
+        --node) node="$2" ; shift ;;
         *)
         esac
         shift
