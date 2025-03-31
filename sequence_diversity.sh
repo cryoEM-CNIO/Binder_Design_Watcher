@@ -8,6 +8,7 @@ conda activate $MICRORUN_ENV
 fr=1
 nseqs=1
 fixed="None"
+node=""
 
 while [[ $# -gt 0 ]]; do
     key="$1"
