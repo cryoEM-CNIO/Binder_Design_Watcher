@@ -115,11 +115,13 @@ On the bottom of the tab, you can select the extraction preferences, among them:
 
 - Extract the file from pMPNN output or AF2 output
 - Generate a DNA sequence
-- Add an initial methonine
+- Add an initial methionine
 - Select the organism for which you want to optimize the sequence 
 - Add a 3' and 5' overhang 
-- Reach a certain lenght adding a padding sequence with a selected GC content
+- Reach a certain length adding a padding sequence with a selected GC content
 - Select enzymes to check for enzyme restriction sites and modify them to avoid undesired cuts
+
+*While this method has been in use for some time and sequences usually appear accurate, there is still a possibility of errors. We recommend thoroughly verifying all sequences before ordering.*
 
 Finally, the extract hits button allows you to extract the hits.
 
