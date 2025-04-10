@@ -36,16 +36,18 @@ def get_hit_names(filtered_df, xaxis_value):
 
     hit_names --> A list of the hit names, ordered in ascending order using the x variable
     '''
-
+    hit_names={'path':[], 'description':[]}
     if not filtered_df.empty:
         sorted_df = filtered_df.sort_values(by=xaxis_value, ascending=True)
-        hit_names = sorted_df['description'].tolist()
+        for index, row in sorted_df.iterrows():
+            hit_names['path'].append(row['original_design'])
+            hit_names['description'].append(row['description'])
         return hit_names
     else:
         return ["No hits found under the specified conditions"]
     
 # Function to get best hit path
-def get_design_file_path_and_name(description, directory):
+def get_design_file_path_and_name(hits_names, directory,input_pdb_path):
     '''
     Gets a design file path and name for its representaion in ngl
 
@@ -60,13 +62,19 @@ def get_design_file_path_and_name(description, directory):
     Returns the data path and its identification for the ngl representation  
 
     '''
-
+    
+    description = hits_names['description']
     match = re.match(r"(run_\d+)_design_(\d+_substituted).*", description)
-    if not match:
+    match2 = re.match(r"Input", description)
+    if not match and not match2:
         print("Invalid description format")
         # Returning None for both values if the format is invalid
         return None, None
-
+    elif match2:
+        # If the description is "Input", return the directory and a placeholder filename
+        data_path = input_pdb_path=glob.glob(input_pdb_path)[0]
+        filename = "Input"
+        return data_path, filename
     run_part, design_part = match.groups()
     # Constructing the file path using 'directory' which is now an absolute path
     data_path = os.path.join(directory, run_part)

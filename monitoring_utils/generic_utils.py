@@ -69,38 +69,13 @@ def merge_csv_files(directory, input_pdb_path):
     merged_df --> A df that integrates all the metrics from AF2IG and PyRosetta
 
     '''
-
-    ################################################
-    # SC reading no longer needed, scoring does it #
-    # Kept for old projects, remove it in producti #
-    ################################################
     try:
         input_pdb_path=f'{directory}/{input_pdb_path}'
         df_whole=pd.read_csv(f'{directory}/Scoring_Stats.csv')
-        if 'time' not in df_whole.columns:
-            df_list=[]
-            working_directory=f'{directory}/output/'
-
-            for root, dirs, files in os.walk(working_directory):
-                for file in files:
-                    if file.endswith('.sc'):
-                        file_path = os.path.join(root, file)
-                        df = pd.read_table(file_path, sep=r'\s+', encoding='utf-8')
-                        df_list.append(df)
-            if df_list:
-                merged_df = pd.concat(df_list, ignore_index=True)
-                merged_df=pd.merge(merged_df, df_whole, on='description')
-                merged_df['original_design'] = merged_df['description'].apply(trim_substituted)
-                input_df=pd.DataFrame(get_input_data(input_pdb_path))
-                merged_df=pd.concat([merged_df,input_df], ignore_index=True)
-                return merged_df
-            else:
-                return pd.DataFrame(columns=['plddt_binder','pae_interaction', 'CUTRE','dG','dSASA', 'Shape_complementarity', 'Packstat', 'dG_SASA_ratio', 'SAP', 'binder_int_hyd', 'binder_surf_hyd', 'interface_hbonds', 'interface_unsat_hbonds' ])
-        else:
-            df_whole['original_design'] = df_whole['description'].apply(trim_substituted)
-            input_df=pd.DataFrame(get_input_data(input_pdb_path))
-            merged_df=pd.concat([df_whole,input_df], ignore_index=True)
-            return merged_df
+        df_whole['original_design'] = df_whole['description'].apply(trim_substituted)
+        input_df=pd.DataFrame(get_input_data(input_pdb_path))
+        merged_df=pd.concat([df_whole,input_df], ignore_index=True)
+        return merged_df
     except FileNotFoundError:
          return pd.DataFrame(columns=['plddt_binder','pae_interaction', 'CUTRE','dG','dSASA', 'Shape_complementarity', 'Packstat', 'dG_SASA_ratio', 'SAP', 'binder_int_hyd', 'binder_surf_hyd', 'interface_hbonds', 'interface_unsat_hbonds' ])
 
@@ -219,9 +194,9 @@ def get_input_data(input_pdb_path):
                         # Append the value to the corresponding key's list
                         binding_analysis_dict[key].append(float(value))
                         break
-        
+        #Assuming the input has the same name pattern as the one we use in microrun:
         binding_analysis_dict['original_design'].append(input_pdb_path)
-        binding_analysis_dict['description'].append(input_pdb_path.split('/')[1].split('.')[0])
+        binding_analysis_dict['description'].append('Input')
         #check if some of the keys of the dictionary are empty and add a nan
         for key, value in binding_analysis_dict.items():
             if isinstance(value, list) and not value:  # Check if it's an empty list

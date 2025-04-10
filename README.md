@@ -1,13 +1,13 @@
 # MICRORUN & WATCHER
 
-These are a few scripts intended to provide a platform for users of SLURM based small HPC that can help to atomize the task of protein design (*microrun.sh*), as well as check *on the fly* how the runs are performing and help with the selection of designs for subsequent order (*watcher.py*).
+These are a few scripts intended to provide a platform for users of SLURM based small HPC clusters that can help to atomize the task of protein design (*microrun.sh*), as well as check *on the fly* how the runs are performing and help with the selection of designs for subsequent order (*watcher.py*).
 
 Right now it can be used with RosettaFold Diffusion (for which we have added some physical based scorings using PyRosetta)
 
 Hope you can find them useful!
 
 This repository is organized as follows:
--**microrun**: In this folder is stored all the code needed to run the binder design process using the microrun structure 
+- **microrun**: In this folder is stored all the code needed to run the binder design process using the microrun structure 
     - **scripts**: This is where the different scripts use in the microrun are stored, as well as some other useful design for the protein design process.
     - **slurm_submit**: In this folder we store the SLURM submit scripts
     - **master_scripts**: In this folder the scripts running each of the steps are stored 
@@ -15,8 +15,8 @@ This repository is organized as follows:
 
 Outside of this folder you have 5 different files:
 - **config.sh**: A config file to set all the paths for the different softwares that microrun uses, the environment names and the SLURM configurations
-- **install_watcher.sh**: A script to install the watcher environment, which is also used in some steps of the microrun campaing run
-- **microrun.sh**: The script to run a binder design campaing following the microrun structure
+- **install_watcher.sh**: A script to install the watcher environment, which is also used in some steps of the microrun campaign run
+- **microrun.sh**: The script to run a binder design campaign following the microrun structure
 - **microrun_watcher.py**: The script to visualize on the fly how the campaign is going, as well to select and get the designs sequences
 - **sequence_diversity.sh**: The script to run the sequence diversity option, which consists in generating only differnet sequences for a backbone using the microrun structure
 ## HOW IT WORKS
@@ -42,20 +42,20 @@ project_dir/
         ├── run_1_design_20.pdb                                             # Initial structure generation (Gly backbone) (The design number marks the gpu in which it has run)
         ...
         ├── run_1_design_29.pdb                                             # Initial structure generation (Gly backbone)
-        ├── run_1_design_10_substituted.pdb                                  # Initial structure with the target substituted with the template  (The design number marks the gpu in which it has run)
+        ├── run_1_design_10_substituted.pdb                                 # Initial structure with the target substituted with the template  (The design number marks the gpu in which it has run)
         ...
-        ├── run_1_design_19_substituted.pdb                                  # Initial structure with the target substituted with the template  (The design number marks the gpu in which it has run)
-        ├── run_1_design_20_substituted.pdb                                  # Initial structure with the target substituted with the template  (The design number marks the gpu in which it has run)
+        ├── run_1_design_19_substituted.pdb                                 # Initial structure with the target substituted with the template  (The design number marks the gpu in which it has run)
+        ├── run_1_design_20_substituted.pdb                                 # Initial structure with the target substituted with the template  (The design number marks the gpu in which it has run)
         ...
-        ├── run_1_design_29_substituted.pdb                                  # Initial structure with the target substituted with the template  (The design number marks the gpu in which it has run)
+        ├── run_1_design_29_substituted.pdb                                 # Initial structure with the target substituted with the template  (The design number marks the gpu in which it has run)
 
-        ├── run_1_input_design_1_input.silent                                # Silent input of pMPNN  (The design number marks the gpu in which it has run)
-        ├── run_1__design_1_input_out.silent                                 # Silent output of pMPNN and input of AF2-IG  (The design number marks the gpu in which it has run)
-        ├── run_1_design_1_input_out_af2.silent                              # Silent output of AF2-IG and input of scoring.py (The design number marks the gpu in which it has run)
-        ├── run_1_design_1_input_out_af2.sc                                  # Scoring of AF2-IG (The design number marks the gpu in which it has run)
-        ├── pae_run_1_design_10_substituted_dldesign_0_cycle1_af2pred.json   #JSON with the PAE and pLDDT info of the AF2 prediction (The design number marks the gpu in which it has run)
+        ├── run_1_input_design_1_input.silent                               # Silent input of pMPNN  (The design number marks the gpu in which it has run)
+        ├── run_1__design_1_input_out.silent                                # Silent output of pMPNN and input of AF2-IG  (The design number marks the gpu in which it has run)
+        ├── run_1_design_1_input_out_af2.silent                             # Silent output of AF2-IG and input of scoring.py (The design number marks the gpu in which it has run)
+        ├── run_1_design_1_input_out_af2.sc                                 # Scoring of AF2-IG (The design number marks the gpu in which it has run)
+        ├── pae_run_1_design_10_substituted_dldesign_0_cycle1_af2pred.json  #JSON with the PAE and pLDDT info of the AF2 prediction (The design number marks the gpu in which it has run)
         ...
-        ├── pae_run_1_design_19_substituted_dldesign_0_cycle1_af2pred.json   #JSON with the PAE and pLDDT info of the AF2 prediction           
+        ├── pae_run_1_design_19_substituted_dldesign_0_cycle1_af2pred.json  #JSON with the PAE and pLDDT info of the AF2 prediction           
         └──traj/                                                            #Directory where the trajectories are stored (for cool movies)
     ├── run_2/
         ...
@@ -75,6 +75,7 @@ project_dir/
 ```
 
 We add an intermediate step between the binder generation and the sequence assignment in which we substitute the cropped input for a desired template, and check both the presence of steric clashes between binder and target and the presence of a large enough hydrophobic core to save computational resources (we remove from the sequence assignment and scoring those designs which are single helix or hairpins).
+
 ### WATCHER
 
 The watcher is a Dash based app which allows you to follow *on-the-fly* the binder generation process, as well as visualize and extract the desired hits, both protein and cDNA sequence. Moreover, and usign CodonTransformer, you can select to which organism adapt the sequence, and your desired overhang to both 5' and 3'.
@@ -87,15 +88,15 @@ The watcher has two different tabs, which are described in the following section
 The watcher 'Live Visualization' tab is composed of a Scatter plot, in which you can compare design metrics. You can select the x and y axis value between all the scoring metrics extracted.
 Those designs that do not pass the filtering metrics are colored in grey, while those that indeed fulfill all the requirements are colored according to its length. If none residue pass the metrics, all are colored according to its length.
 
-Next to the scatterplot we have range sliders that allow us to select the thresholds consider for a hit. The defaults are the consider consensus, but feel free to use the filtering you consider work best!
+Next to the scatterplot we have range sliders that allow us to select the thresholds consider for a hit. The defaults are the ones considered as consensus, but feel free to use the filtering you think will work best!
 
 If you want to make pairwise comparison between designs you can click two different points of the scatterplot, and on the right a radar plot comparing their more important metrics will appear. The reference line marks the reference value (all metrics are normalized respect to its threshold in this plot).
 On the upper right you can see the area units of each plot in the radar, to make numerical comparisons between designs in all metrics
-`Note: This Area Unit comparison has not been extensively tested. It gives the same weight to all parameters, so probably it is somewhat flawed. If you have data or an idea to further refine this comparison, please tell us! :)`
+`Note: This Area Unit comparison has not been extensively tested. It gives the same weight to all parameters, so probably it is somewhat flawed. If you have any data or idea to further refine this comparison, please tell us! :)`
 
 On the bottom left, we have a datatable in which each run progression is detailed, and whether if any run has failed.
 
-On the bottom right we have a `STOP CAMPAIGN` button. This button creates a `campaign_done` file in the microrun directory, prompting that the microrun stops (all the runs already sent still run until finished)
+On the bottom right we have a `STOP CAMPAIGN` button. This button creates a `campaign_done` file in the microrun directory, prompting that the microrun stops (all the runs already sent are executed, no more runs sent)
 
 ![alt figure](./figures/Slide1.jpg)
 
@@ -104,7 +105,7 @@ On the bottom right we have a `STOP CAMPAIGN` button. This button creates a `cam
 The second tab is the extraction tab. In this tab you can see the structures of those designs that can be consider hits (according to the metrics you impose in the Live Visualization tab).
 `Note: Since we work with silent files to make everything more organized, only the initial backbone designs can be inspected. However, we have noticed that if the prediction metrics are good, the backbone design and the final AF2-IG prediction are pretty similar`
 
-Once you have inspected all the structures, you can select those that are interesting to you with the checklist on the right, and then extract it. The pdb information is extracted using Rosetta tools, the fasta is generated using Biopython package and the DNA sequence is generated using CodonTransformer 
+Once you have inspected all the structures, you can select those that are interesting to you with the checklist on the right, and then extract it. The pdb information is extracted using Rosetta tools, the fasta is generated using Biopython package and the DNA sequence is generated using [CodonTransformer] (https://github.com/Adibvafa/CodonTransformer/issues?q=is%3Aissue%20state%3Aclosed) 
 On the bottom of the tab you can select the extraction preferences, among them:
 
 - Extract the file from pMPNN output or AF2 output
@@ -116,6 +117,9 @@ On the bottom of the tab you can select the extraction preferences, among them:
 - Select enzymes to check for enzyme restriction sites and modify them to avoid undesired cuts
 
 Finally the extract hits button allows you to extract the hits.
+
+`Note: We have not extensively tested the DNA sequence extraction. Before ordering, make sure everything is correct`
+
 
 ![alt figure](./figures/Slide2.jpg)
 
@@ -210,15 +214,13 @@ The microrun script admits different flags for binder design. Many of them have 
 - `--core`: Threshold of binder fraction core residues for filtering (filtering no plausible structures like most of two helices bundles).  Default=0.05
 - `--residues`: List of residues from the design you want to fix. Useful in the case of scaffolds, to avoid full pMPNN binder sequence reconstruction. It should be provided between brackets, separating residues with commas and defining ranges with - For example: "[1,3,10-20]". Default="None"
 
-`Note: The core threshold is extracted using F1-score from a 1000 design datasets, it should be improved, not too strict`
-
 ### SEQUENCE DIVERSITY FLAGS
 ***The mandatory flags are:**
 - `--input`: Path to the target structure
 - `--threads`: Number of *runs* to be executed in parallel (each *run* is one node occupied)
 - `--max`: Total number of sequences to be generated
 **The optional flags are:**
-- `--residues`: List of residues from the design you want to fix. It should be provided between brackets, separating residues with commas and defining ranges with - For example: "[1,3,10-20]" Default="None"
+- `--fixed`: List of residues from the design you want to fix. It should be provided between brackets, separating residues with commas and defining ranges with - For example: "[1,3,10-20]" Default="None"
 - `--fr`: Number of Fast Relax cycles to perform (_No more than one). Default=1
 - `--nseqs`: Number of sequences to generate per run. Default=1
 `No more than 1 sequence can be generated if the FR is set to 1`
@@ -254,6 +256,7 @@ There are several metrics to score your binder. The more general ones (and proba
 - *interface_unsat_hbonds*: Number of unsatisfied buried hydrogen bonds at the interface. Recommended to be lower than 4. WARNING! I have to slightly change the code from BindCraft, maybe this computation has changed, not 100%
 
 - *RMSD*: RMSD between the design by RFD and the prediction by AF2. Values below 2 A are probably accurate enough, although there is no data about where to put the threshold
+
 - *ipSAE*: Metric developed by Dunbrack and explained [here](https://www.biorxiv.org/content/10.1101/2025.02.10.637595v1.full.pdf). Although more extensive studies should be made, anything over 0.6 probably can be considered a true positive
  
 Most of this filters are "inspired" from the ones published by Martin Pacesa for BindCraft. Thank you! (Highly recommend checking their work!)

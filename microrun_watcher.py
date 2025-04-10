@@ -47,7 +47,6 @@ directories_list=get_working_directories(working_dir)
 if not directories_list:
     directories_list=[working_dir]
 designs_list=[]
-print(directories_list)
 #Initial lists for extraction dropdowns
 
 initial_organisms=[
@@ -410,32 +409,6 @@ def serve_layout():
 ])
 app.layout = serve_layout
 
-
-## PDB viewer
-@callback(
-    Output("extractions_molecule", 'data'),
-    Output("extractions_molecule", "molStyles"),
-    Input("extractions_molecule_dropdown", "value"),
-    Input('directory-dropdown', 'value')
-)
-
-def return_molecule(value,directory):
-    working_dir=f'{directory}/output/'
-    if (value is None) or (value == ''):
-        raise PreventUpdate
-    else:
-        data_path, filename = get_design_file_path_and_name(value, working_dir)
-        try: data_path = data_path+'/'
-        except: data_path = ''
-        molstyles_dict = {
-            "representations": ["cartoon"],
-            "chosenAtomsColor": "white",
-            "chosenAtomsRadius": 1,
-            "molSpacingXaxis": 100,
-        }
-        data_list = [ngl_parser.get_data(data_path=data_path, pdb_id=filename, color='red',reset_view=True, local=True)]
-    return data_list, molstyles_dict
-
 # Callback to update graphs and table
 @callback(
     [Output('scatter-plot', 'figure'),
@@ -445,7 +418,8 @@ def return_molecule(value,directory):
      Output('extractions_molecule_dropdown', 'options'),
      Output('filtered_df', 'data'),
      Output('extraction-selection', 'options'),
-     Output('extraction-selection', 'value')],
+     Output('extraction-selection', 'value'),
+     Output('extractions_molecule', 'data')],
     [Input('directory-dropdown', 'value'),
      Input('interval-component', 'n_intervals'),
      Input('stop-campaign', 'n_clicks'),
@@ -504,7 +478,36 @@ def update_graph( working_dir,n, n_clicks_stop,xaxis_value,yaxis_value, input_pd
     jasonified_df=filtered_df.to_json(date_format='iso', orient='split')
 
 
-    return scatter_plot, row_count_text, status_df_records, job_status_counts_text,dropdown_options, jasonified_df, dropdown_options, dropdown_options
+    return scatter_plot, row_count_text, status_df_records, job_status_counts_text,dropdown_options['description'], jasonified_df, dropdown_options['description'], dropdown_options['description'],dropdown_options
+
+
+## PDB viewer
+@callback(
+    Output("extractions_molecule", 'data'),
+    Output("extractions_molecule", "molStyles"),
+    Input("extractions_molecule_dropdown", "value"),
+    Input('directory-dropdown', 'value'),
+    Input('input_pdb_path', 'value'))
+
+def return_molecule(hits_names,directory, input_pdb_path):
+    working_dir=f'{directory}/output/'
+    # Get the selected value from the dropdown
+    value = hits_names
+    if (value is None) or (value == ''):
+        raise PreventUpdate
+    else:
+        data_path, filename = get_design_file_path_and_name(value, working_dir,input_pdb_path)
+        try: data_path = data_path+'/'
+        except: data_path = ''
+        molstyles_dict = {
+            "representations": ["cartoon"],
+            "chosenAtomsColor": "white",
+            "chosenAtomsRadius": 1,
+            "molSpacingXaxis": 100,
+        }
+        data_list = [ngl_parser.get_data(data_path=data_path, pdb_id=filename, color='red',reset_view=True, local=True)]
+    return data_list, molstyles_dict
+
 
 @callback(
     Output('radar-plot', 'figure'),

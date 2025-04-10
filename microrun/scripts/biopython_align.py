@@ -271,28 +271,44 @@ def save_protein_substituted(structure,output_dir):
 #################################################
 '''Function to add the fixed remark to the pdbs in order to fix some residues during pMPNN'''
 
-def add_fixed_residues(output_path,residues):
-    residues_to_fix=[]
-    if residues != None:
+def add_fixed_residues(output_path, residues):
+    residues_to_fix = []
+    if residues is not None:
         if residues != 'None':
-            residues_list=residues.strip('[').strip(']').strip().split(',') #No problem if there are no commas in the input 
+            residues_list = residues.strip('[').strip(']').strip().split(',')  # No problem if there are no commas in the input
             for resi in residues_list:
                 try:
                     residues_to_fix.append(int(resi))
                 except ValueError:
-                    for resi_range_id in range(int(resi.split('-')[0]), int(resi.split('-')[1])+1):
+                    for resi_range_id in range(int(resi.split('-')[0]), int(resi.split('-')[1]) + 1):
                         residues_to_fix.append(resi_range_id)
-            #The remarks of fixed should be added after the last TER, which is written as TER                           \n
-            with open(output_path, 'r+') as read_file:
-                contents=read_file.readlines()
-                index=max([i for i, x in enumerate(contents) if x == "TER                                                                             \n"])
+            
+            # Read the file contents
+            with open(output_path, 'r') as read_file:
+                contents = read_file.readlines()
+            
+            # Find the last occurrence of "END"
+            last_end_index = None
+            for i in range(len(contents) - 1, -1, -1):
+                if contents[i].strip() == "END":
+                    last_end_index = i+1
+                    break
+            # If "END" is not found, set last_end_index to the last TER
+            if last_end_index is None:
+                for i in range(len(contents) - 1, -1, -1):
+                    if contents[i].strip() == "TER":
+                        last_end_index = i+1
+                        break
+            # Insert the fixed remarks before the last "TER"
+            if last_end_index is not None:
                 for residue_id in residues_to_fix:
-                    index+=1
-                    contents.insert(index,f"REMARK PDBinfo-LABEL:{residue_id: >5} FIXED\n")
-                read_file.seek(0)
-                read_file.writelines(contents)
+                    contents.insert(last_end_index, f"REMARK PDBinfo-LABEL:{residue_id: >5} FIXED\n")
+            
+            # Write the updated contents back to the file
+            with open(output_path, 'w') as write_file:
+                write_file.writelines(contents)
+            
             print(f'Residues {[i for i in residues_to_fix]} fixed in the pdb')
-    
 
 def main():
     parser = argparse.ArgumentParser(description="Substitute a chain in PDB files.")

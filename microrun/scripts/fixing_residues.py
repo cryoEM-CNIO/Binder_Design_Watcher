@@ -15,6 +15,7 @@ The PDB inputted is modified so after the last TER remarks fixing each of the de
 
 import argparse
 from biopython_align import add_fixed_residues
+
 if __name__ == '__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument("--fixed", required=False, default=None, help='List of residues of the binder to fix (Useful for scaffolding)')
