@@ -493,8 +493,6 @@ def return_molecule(hits_names,directory, input_pdb_path):
         raise PreventUpdate
     else:
         data_path, filename = get_design_file_path_and_name(value, directory,input_pdb_path)
-        print(data_path)
-        print(filename)
         try: data_path = data_path+'/'
         except: data_path = ''
         molstyles_dict = {
@@ -504,6 +502,8 @@ def return_molecule(hits_names,directory, input_pdb_path):
             "molSpacingXaxis": 100,
         }
         data_list = [ngl_parser.get_data(data_path=data_path, pdb_id=filename, color='red',reset_view=True, local=True)]
+        print(data_path)
+        print(filename)
     return data_list, molstyles_dict
 
 

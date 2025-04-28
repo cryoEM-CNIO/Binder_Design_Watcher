@@ -73,7 +73,7 @@ def get_design_file_path_and_name(hits_names, directory,input_pdb_path):
         input_path=os.path.join(directory, input_pdb_path)
         # If the description is "Input", return the directory and a placeholder filename
         data_path ='/'.join(glob.glob(input_path)[0].split('/')[:-1])
-        filename = glob.glob(input_path)[0].split('/')[-1]
+        filename = glob.glob(input_path)[0].split('/')[-1].split('.')[0]
         return data_path, filename
     run_part, design_part = match.groups()
     # Constructing the file path using 'directory' which is now an absolute path
