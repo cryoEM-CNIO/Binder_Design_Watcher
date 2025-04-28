@@ -9,8 +9,7 @@ while [[ $# -gt 0 ]]; do
         -r|--run) run="$2" ; shift ;;
         -ns|--nseqs) pmp_nseqs="$2" ; shift  ;;    
         -fr|--fr) pmp_relax_cycles="$2" ; shift  ;;   
-        -hn|--hits_number) hits_number="$2" ; shift ;;
-        -f|--fixed) fixed="$2" ; shift ;; 
+        -hn|--hits_number) hits_number="$2" ; shift ;; 
         -d|--directory) directory="$2" ; shift ;;
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac

@@ -17,7 +17,7 @@ while [[ $# -gt 0 ]]; do
         --input) input="$2" ; shift ;;
         --threads) threads="$2" ; shift ;;
         --max) max="$2" ; shift ;;
-        --fixed) fixed="$2" ; shift ;;
+        --residues) residues="$2" ; shift ;;
         --nseqs) nseqs="$2" ; shift ;;
         --fr) fr="$2" ; shift ;;
         --node) node="$2" ; shift ;;
@@ -40,7 +40,7 @@ fi
 ## Fix residues
 
 if [ $fixed != "None" ]; then 
-    python3 "$MICRORUN_PATH/scripts/fixing_residues.py" --fixed "$fixed" --pdb_input "$input"
+    python3 "$MICRORUN_PATH/scripts/fixing_residues.py" --residues "$residues" --pdb_input "$input"
 fi
 
 ## create silent file
@@ -72,7 +72,7 @@ while true;do
     fi
 
     sbatch -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
-            $MICRORUN_PATH/microrun/slurm_submit/submit_sequence_diversity.sh --run "$i" --nseqs "$nseqs" --fr "$fr" --fixed "$fixed" --directory "$SCRIPT_DIR"
+            $MICRORUN_PATH/microrun/slurm_submit/submit_sequence_diversity.sh --run "$i" --nseqs "$nseqs" --fr "$fr" --directory "$SCRIPT_DIR"
 
     total_seqs_generated=$(($i*4*$nseqs)) #This is patatero, we have to change it
     if [ $total_seqs_generated -gt $max ]; then 

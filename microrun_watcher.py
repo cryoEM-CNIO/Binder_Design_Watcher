@@ -418,8 +418,7 @@ app.layout = serve_layout
      Output('extractions_molecule_dropdown', 'options'),
      Output('filtered_df', 'data'),
      Output('extraction-selection', 'options'),
-     Output('extraction-selection', 'value'),
-     Output('extractions_molecule', 'data')],
+     Output('extraction-selection', 'value'),],
     [Input('directory-dropdown', 'value'),
      Input('interval-component', 'n_intervals'),
      Input('stop-campaign', 'n_clicks'),
@@ -471,14 +470,12 @@ def update_graph( working_dir,n, n_clicks_stop,xaxis_value,yaxis_value, input_pd
 
 
     # Dropdown HITS
-    
     dropdown_options = get_hit_names(filtered_df,xaxis_value)
-
     #jasonified df for communication between callbacks
     jasonified_df=filtered_df.to_json(date_format='iso', orient='split')
 
 
-    return scatter_plot, row_count_text, status_df_records, job_status_counts_text,dropdown_options['description'], jasonified_df, dropdown_options['description'], dropdown_options['description'],dropdown_options
+    return scatter_plot, row_count_text, status_df_records, job_status_counts_text,dropdown_options, jasonified_df, dropdown_options, dropdown_options
 
 
 ## PDB viewer
@@ -490,13 +487,14 @@ def update_graph( working_dir,n, n_clicks_stop,xaxis_value,yaxis_value, input_pd
     Input('input_pdb_path', 'value'))
 
 def return_molecule(hits_names,directory, input_pdb_path):
-    working_dir=f'{directory}/output/'
     # Get the selected value from the dropdown
     value = hits_names
     if (value is None) or (value == ''):
         raise PreventUpdate
     else:
-        data_path, filename = get_design_file_path_and_name(value, working_dir,input_pdb_path)
+        data_path, filename = get_design_file_path_and_name(value, directory,input_pdb_path)
+        print(data_path)
+        print(filename)
         try: data_path = data_path+'/'
         except: data_path = ''
         molstyles_dict = {
@@ -573,22 +571,9 @@ def extract_hits(working_dir, n, clicks, extract_type,DNA_seq, met, organism, th
                 print('###############################\nEXTRACTING HIT\n###############################\n' + description)
                 run_number = re.search(r'run_\d+',description).group()
                 design_number = math.floor(int(re.search(r'run_\d+_design_(\d+).*',description).group(1))/10)
-                ########## For the v2 tests microrun, different structure ######################################################
-                ########## If we go forward with the V3, marked lines must be remove before deployment ######################### 
-                if design_number != 0:
-                    pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
-                    af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
-                    af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
-                else:
-                    if os.path.isfile(f'{working_dir}/output/{run_number}/{run_number}_input_out.silent'):
-                        pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_input_out.silent'
-                        af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_input_sol_out_af2.silent'
-                        af2_file=f'{working_dir}/output/{run_number}/{run_number}_input_out_af2.silent'
-                    else:
-                        design_number=int(re.search(r'run_\d+_design_(\d+).*',description).group(1))
-                        pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
-                        af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
-                        af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
+                pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
+                af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
+                af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
                 if extract_type == 'PMPNN':
                         command = f'silentextractspecific {pmpnn_file}' + description[:-8] + ' > extraction.log'
 

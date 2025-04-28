@@ -34,14 +34,13 @@ def get_hit_names(filtered_df, xaxis_value):
     
     Output:
 
-    hit_names --> A list of the hit names, ordered in ascending order using the x variable
+    hit_names --> A dictionary of the hit names, ordered in ascending order using the x variable
     '''
-    hit_names={'path':[], 'description':[]}
+    hit_names=[]
     if not filtered_df.empty:
         sorted_df = filtered_df.sort_values(by=xaxis_value, ascending=True)
         for index, row in sorted_df.iterrows():
-            hit_names['path'].append(row['original_design'])
-            hit_names['description'].append(row['description'])
+            hit_names.append(row['description'])
         return hit_names
     else:
         return ["No hits found under the specified conditions"]
@@ -63,7 +62,7 @@ def get_design_file_path_and_name(hits_names, directory,input_pdb_path):
 
     '''
     
-    description = hits_names['description']
+    description = hits_names
     match = re.match(r"(run_\d+)_design_(\d+_substituted).*", description)
     match2 = re.match(r"Input", description)
     if not match and not match2:
@@ -71,13 +70,15 @@ def get_design_file_path_and_name(hits_names, directory,input_pdb_path):
         # Returning None for both values if the format is invalid
         return None, None
     elif match2:
+        input_path=os.path.join(directory, input_pdb_path)
         # If the description is "Input", return the directory and a placeholder filename
-        data_path = input_pdb_path=glob.glob(input_pdb_path)[0]
-        filename = "Input"
+        data_path ='/'.join(glob.glob(input_path)[0].split('/')[:-1])
+        filename = glob.glob(input_path)[0].split('/')[-1]
         return data_path, filename
     run_part, design_part = match.groups()
     # Constructing the file path using 'directory' which is now an absolute path
-    data_path = os.path.join(directory, run_part)
+    working_directory = directory+'/output'
+    data_path = os.path.join(working_directory, run_part)
     filename = f"{run_part}_design_{design_part}"
 
     return data_path, filename

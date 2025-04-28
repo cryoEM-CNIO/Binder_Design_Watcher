@@ -269,19 +269,43 @@ def save_protein_substituted(structure,output_dir):
 #################################################
 #----------------- FIXED FUNCTIONS -------------#
 #################################################
-'''Function to add the fixed remark to the pdbs in order to fix some residues during pMPNN'''
+def residues_length_added(input_path, template_path):
+    '''
+    When scaffolding is perormed, some residues can be added to the N-ter, changing the numbering of the residues,
+    This function should recognize the original sequence (if there is chain A), and count the numeber of residues added to the N-ter
+    If the residues are added to the C-ter, the function should not be used
+    '''
+    #extract structure
+    template_structure = PDB.PDBParser(QUIET=True).get_structure('template', template_path)
+    input_structure = PDB.PDBParser(QUIET=True).get_structure('input', input_path)
+    #Extract sequence 
+    with open(input_path, 'r') as pdb_file:
+        for record in PdbIO.AtomIterator(pdb_file,input_structure):
+            chain = record.annotations['chain']
+            if chain == 'A':
+                binder_sequence = record.seq
+    with open(template_path, 'r') as template_file:
+        for record in PdbIO.AtomIterator(template_file,template_structure):
+            chain = record.annotations['chain']
+            if chain == 'A':
+                template_sequence = record.seq
+    number_of_residues_added=len(str(binder_sequence).split(str(template_sequence))[0])
+    return int(number_of_residues_added)
 
-def add_fixed_residues(output_path, residues):
+
+'''Function to add the fixed remark to the pdbs in order to fix some residues during pMPNN'''
+def add_fixed_residues(input_path,template_path,output_path, residues):
     residues_to_fix = []
+    N_ter_residues=residues_length_added(input_path, template_path)
     if residues is not None:
         if residues != 'None':
             residues_list = residues.strip('[').strip(']').strip().split(',')  # No problem if there are no commas in the input
             for resi in residues_list:
                 try:
-                    residues_to_fix.append(int(resi))
+                    residues_to_fix.append(str(int(resi)+N_ter_residues))
                 except ValueError:
                     for resi_range_id in range(int(resi.split('-')[0]), int(resi.split('-')[1]) + 1):
-                        residues_to_fix.append(resi_range_id)
+                        residues_to_fix.append(int(resi_range_id)+int(N_ter_residues))
             
             # Read the file contents
             with open(output_path, 'r') as read_file:
@@ -340,7 +364,7 @@ def main():
         if clashes+shape+hairpin == 3:
             output_path=save_protein_substituted(sub_structure,io_path)
             if args.residues != None:
-                add_fixed_residues(output_path, args.residues)
+                add_fixed_residues(pdb_path,args.template, output_path, args.residues)
         else:
             continue
 
