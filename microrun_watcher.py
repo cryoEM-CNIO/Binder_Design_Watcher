@@ -571,14 +571,18 @@ def extract_hits(working_dir, n, clicks, extract_type,DNA_seq, met, organism, th
                 print('###############################\nEXTRACTING HIT\n###############################\n' + description)
                 run_number = re.search(r'run_\d+',description).group()
                 design_number = math.floor(int(re.search(r'run_\d+_design_(\d+).*',description).group(1))/10)
-                pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
-                af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
-                af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
+                if design_number != 0:
+                    pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
+                    af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
+                    af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
+                else:
+                    design_number=int(re.search(r'run_\d+_design_(\d+).*',description).group(1))        
+                    pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
+                    af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
+                    af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
                 if extract_type == 'PMPNN':
                         command = f'silentextractspecific {pmpnn_file}' + description[:-8] + ' > extraction.log'
-
                 else:
-
                     if os.path.isfile(af2_file_sol):
                         command = f'silentextractspecific {af2_file_sol} '+ description + ' > extraction.log'  
                         subprocess.run(command, cwd=hits_folder, shell=True)

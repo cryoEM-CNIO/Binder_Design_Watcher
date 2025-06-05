@@ -27,7 +27,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 mkdir -p "output"
-mkdir -p "slurm_logs"
 
 last_run_folder=$(ls -d "./output/run_"* 2>/dev/null | sort -V | tail -n 1 | sed 's#./output/run_##')
 
@@ -58,7 +57,7 @@ while true;do
     
     # Variable generation and definition
 
-    mkdir -p "output/run_${i}"
+    mkdir -p "output/run_${i}/slurm_logs"
 
     waitfor="output/run_${previous}/run_${previous}_done"
 
@@ -71,7 +70,7 @@ while true;do
     
     fi
 
-    sbatch -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
+    sbatch -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o ./output/run_$i/slurm_logs/%j.out -e ./output/run_$i/slurm_logs/%j.err \
             $MICRORUN_PATH/microrun/slurm_submit/submit_sequence_diversity.sh --run "$i" --nseqs "$nseqs" --fr "$fr" --directory "$SCRIPT_DIR"
 
     total_seqs_generated=$(($i*4*$nseqs)) #This is patatero, we have to change it
@@ -85,4 +84,3 @@ echo " #######################"
 echo "- DIVERSITY GENERATION CONCLUDED"
 echo "- ${total_seqs_generated} sequences generated in total"
 echo " #######################"
-

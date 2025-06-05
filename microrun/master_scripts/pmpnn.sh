@@ -26,7 +26,7 @@ silent_point=`echo "$input_silent" | sed 's#.silent#_out.point#'`
 fixed_residues_path="output/run_$i/fixed_residues_$t.json"
 echo "Running pMPNN on $input_silent"
 
-python3 -u $PMPNN_PATH/mpnn_fr/dl_interface_design_cutre.py -silent "$input_silent" -checkpoint_path "/apps/rosetta/dl_binder_design/mpnn_fr/ProteinMPNN/vanilla_model_weights/v_48_030.pt" -outsilent "$silent_out" -relax_cycles "$relax_cycles" -seqs_per_struct "$n_seqs" -checkpoint_name "$silent_point" #requires using our own modified version of mpnn, in which temp.pdb has a different name
+python3 -u $PMPNN_PATH/mpnn_fr/dl_interface_design.py -silent "$input_silent" -checkpoint_path "/apps/rosetta/dl_binder_design/mpnn_fr/ProteinMPNN/vanilla_model_weights/v_48_030.pt" -outsilent "$silent_out" -relax_cycles "$relax_cycles" -seqs_per_struct "$n_seqs" -checkpoint_name "$silent_point" #requires using our own modified version of mpnn, in which temp.pdb has a different name
 
 echo "done"
 

@@ -57,7 +57,6 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-mkdir -p ./slurm_logs
 mkdir -p ./output
 
 last_run_folder=$(ls -d "./output/run_"* 2>/dev/null | sort -V | tail -n 1 | sed 's#./output/run_##')
@@ -86,7 +85,7 @@ old_i=1
 while [ ! -f 'campaign_done' ]; do
     i=$((i+1))
     echo "Starting cycle $i"
-    mkdir -p ./output/run_$i
+    mkdir -p ./output/run_$i/slurm_logs
 
     # Set a default value for previous if i is smaller than max (initial cycles)
     if [ "$i" -le $max ]; then
@@ -105,7 +104,7 @@ while [ ! -f 'campaign_done' ]; do
     # Now that the condition is met or previous is 0, proceed to the following code
     fi  
 
-sbatch -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o slurm_logs/%j.out -e slurm_logs/%j.err \
+sbatch -w "$node" --nodes="$NODES" -p "$PARTITION" --open-mode=append --gres="$GRES" --exclusive --cpus-per-gpu="$CPUS_PER_GPU" -o ./output/run_$i/slurm_logs/%j.out -e ./output/run_$i/slurm_logs/%j.err \
        "$MICRORUN_PATH/microrun/slurm_submit/submit_master.sh" --input "$input" --template "$template" --run "$i" --rfd_contigs "$rfd_contigs" --rfd_ndesigns "$rfd_ndesigns" \
        --pmp_nseqs "$pmp_nseqs" --pmp_relax_cycles "$pmp_relax_cycles" --partial_diff "$partial_diff" --noise_steps "$noise_steps" --noise_scale "$noise_scale" --ckp "$ckp" \
        --core "$core" --residues "$residues" --hits_number "$hits_number" --rfd_hotspots "$rfd_hotspots" --directory "$SCRIPT_DIR"

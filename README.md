@@ -222,7 +222,7 @@ The microrun script admits different flags for binder design. Many of them have 
 - `--distance`: Distance from the protein-protein interface to start redesigning the sequence using pMPNN soluble. Default=10
 - `--hits_number`: Number of designs which pass the filtering metrics, after which the process stops. Default=100
 - `--core`: Threshold of binder fraction core residues for filtering (filtering no plausible structures like most of two helices bundles).  Default=0.05
-- `--residues`: List of residues from the design you want to fix. Useful in the case of scaffolds, to avoid full pMPNN binder sequence reconstruction. It should be provided between brackets, separating residues with commas and defining ranges with - For example: "[1,3,10-20]". Default="None"
+- `--residues`: List of residues from the design you want to fix. It should be provided between brackets, separating residues with commas and defining ranges with -. If you are doing scaffolding, the template structure must have the chain A you are using as scaffold (with the same length you are using for scaffolding).For example: "[1,3,10-20]" Default="None"
 
 ### SEQUENCE DIVERSITY FLAGS
 ***The mandatory flags are:**
@@ -231,12 +231,12 @@ The microrun script admits different flags for binder design. Many of them have 
 - `--max`: Total number of sequences to be generated
 
 **The optional flags are:**
-- `--fixed`: List of residues from the design you want to fix. It should be provided between brackets, separating residues with commas and defining ranges with - For example: "[1,3,10-20]" Default="None"
+- `--residues`: List of residues from the design you want to fix. It should be provided between brackets, separating residues with commas and defining ranges with -. If you are doing scaffolding, the template structure must have the chain A you are using as scaffold (with the same length you are using for the scaffolding).For example: "[1,3,10-20]" Default="None"
 - `--fr`: Number of Fast Relax cycles to perform (_No more than one). Default=1
 - `--nseqs`: Number of sequences to generate per run. Default=1
 `No more than 1 sequence can be generated if the FR is set to 1`
 
-## ALTERNATIVE SCORING METRICS
+## SCORING METRICS
 
 There are several metrics to score your binder. The more general ones (and probably the ones which are more faithful) are the pLDDT_binder and the PAE_interaction, but we also offer many more to be used.
 

@@ -302,10 +302,10 @@ def add_fixed_residues(input_path,template_path,output_path, residues):
             residues_list = residues.strip('[').strip(']').strip().split(',')  # No problem if there are no commas in the input
             for resi in residues_list:
                 try:
-                    residues_to_fix.append(str(int(resi)+N_ter_residues))
+                    residues_to_fix.append(str(int(resi)+N_ter_residues)+1)
                 except ValueError:
                     for resi_range_id in range(int(resi.split('-')[0]), int(resi.split('-')[1]) + 1):
-                        residues_to_fix.append(int(resi_range_id)+int(N_ter_residues))
+                        residues_to_fix.append(int(resi_range_id)+int(N_ter_residues)+1)
             
             # Read the file contents
             with open(output_path, 'r') as read_file:

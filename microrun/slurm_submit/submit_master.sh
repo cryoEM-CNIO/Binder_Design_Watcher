@@ -42,7 +42,7 @@ for GPU_ID in $GPUS_AVAILABLE; do
     echo "Using $GPU_ID"
     (
         export CUDA_VISIBLE_DEVICES=$GPU_ID
-        LOG_DIR="slurm_logs/${SLURM_JOB_ID}_gpu${GPU_ID}"
+        LOG_DIR="output/run_$run/slurm_logs/${SLURM_JOB_ID}_gpu${GPU_ID}"
         mkdir -p "$LOG_DIR"
         # ----------------------------------------
         # 1. RFD
