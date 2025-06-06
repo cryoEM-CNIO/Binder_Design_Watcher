@@ -29,7 +29,7 @@ import glob
 import os
 import warnings
 from Bio import BiopythonWarning
-from pyrosetta import * 
+# from pyrosetta import * 
 import re
 warnings.simplefilter('ignore', BiopythonWarning)
 
@@ -193,31 +193,31 @@ def check_clashes(structure):
     print('NO CLASHES DETECTED')
     return 1
 
-#This function discards those designs which lacks a large enough hydrophobic core
-def filter_by_shapes(pdb_file, core):
-    '''
-    Okay, this approximation is based on PyRosetta
-    PyRosetta can select residues based on its layer.
-    Selecting residues of the core to see how many are implicated.
-    If this selected residues do not reach a certain proportion, do not use it.
-    The proportion is computed with the number the maximizes the F1-score, which is set as default
-    '''
-    pose=pose_from_pdb(pdb_file)
-    pdb_id=pdb_file.split('/')[-1].split('.')[0]
-    #Binder Surface hydrophobicity
-    binder_pose = {pose.pdb_info().chain(pose.conformation().chain_begin(i)): p for i, p in zip(range(1, pose.num_chains()+1), pose.split_by_chain())}['A']
-    layer_sel_core=pyrosetta.rosetta.core.select.residue_selector.LayerSelector()
-    layer_sel_core.set_layers(pick_core=True, pick_boundary=False, pick_surface=False)
-    core_res_binder=layer_sel_core.apply(binder_pose)
+# #This function discards those designs which lacks a large enough hydrophobic core
+# def filter_by_shapes(pdb_file, core):
+#     '''
+#     Okay, this approximation is based on PyRosetta
+#     PyRosetta can select residues based on its layer.
+#     Selecting residues of the core to see how many are implicated.
+#     If this selected residues do not reach a certain proportion, do not use it.
+#     The proportion is computed with the number the maximizes the F1-score, which is set as default
+#     '''
+#     pose=pose_from_pdb(pdb_file)
+#     pdb_id=pdb_file.split('/')[-1].split('.')[0]
+#     #Binder Surface hydrophobicity
+#     binder_pose = {pose.pdb_info().chain(pose.conformation().chain_begin(i)): p for i, p in zip(range(1, pose.num_chains()+1), pose.split_by_chain())}['A']
+#     layer_sel_core=pyrosetta.rosetta.core.select.residue_selector.LayerSelector()
+#     layer_sel_core.set_layers(pick_core=True, pick_boundary=False, pick_surface=False)
+#     core_res_binder=layer_sel_core.apply(binder_pose)
 
-    core_res_prop=sum(core_res_binder)/len(core_res_binder)
+#     core_res_prop=sum(core_res_binder)/len(core_res_binder)
 
-    if core_res_prop < float(core):
-        print(f'The design {pdb_id} does not have a large enough core')
-        return 0
-    else:
-        print(f'The design {pdb_id} has a large enough core')
-        return 1
+#     if core_res_prop < float(core):
+#         print(f'The design {pdb_id} does not have a large enough core')
+#         return 0
+#     else:
+#         print(f'The design {pdb_id} has a large enough core')
+#         return 1
 
 #This function filters the designs based on dssp. If the designs are predicted to have a single helix or a hairpin structure they are discarded
 def filter_by_dssp(pdb_file):
@@ -360,8 +360,8 @@ def main():
     template_aligned=structure_alignment(moving=args.template, template=reference, chain=args.chain)
     for pdb_path in glob.glob(f"{io_path}/run_{args.run}_design_{args.t}[0-9].pdb"):
         sub_structure=substitute_chain(pdb_path, args.chain, template_aligned)
-        clashes,shape, hairpin=(int(check_clashes(sub_structure)),int(filter_by_shapes(pdb_path,args.core)), int(filter_by_dssp(pdb_path)))
-        if clashes+shape+hairpin == 3:
+        clashes,hairpin=(int(check_clashes(sub_structure)), int(filter_by_dssp(pdb_path)))
+        if clashes+hairpin == 2:
             output_path=save_protein_substituted(sub_structure,io_path)
             if args.residues != None:
                 add_fixed_residues(pdb_path,args.template, output_path, args.residues)
@@ -372,5 +372,5 @@ def main():
 
 
 if __name__ == '__main__':
-    init("-mute all")
+    # init("-mute all")
     main()
