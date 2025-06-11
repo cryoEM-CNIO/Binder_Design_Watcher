@@ -341,7 +341,7 @@ def main():
     parser.add_argument("--run", required=True, help='Run that is running')
     parser.add_argument("--t", required=False, default='' , help='Indicator of the GPU in which it is running')
     parser.add_argument("--core", required=False, default=0.0696969697, type=float, help='Proportion of core residues to use as filter')
-    parser.add_argument("--residues", required=False, default=None, help='List of residues of the binder to fix (Useful for scaffolding)')
+    parser.add_argument("--residues", required=False, default='None', help='List of residues of the binder to fix (Useful for scaffolding)')
     args = parser.parse_args()
 
     '''
@@ -363,7 +363,7 @@ def main():
         clashes,hairpin=(int(check_clashes(sub_structure)), int(filter_by_dssp(pdb_path)))
         if clashes+hairpin == 2:
             output_path=save_protein_substituted(sub_structure,io_path)
-            if args.residues != None:
+            if args.residues != 'None':
                 add_fixed_residues(pdb_path,args.template, output_path, args.residues)
         else:
             continue

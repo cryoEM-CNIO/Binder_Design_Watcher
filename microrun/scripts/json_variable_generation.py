@@ -45,8 +45,8 @@ def main():
     # Create the JSON data
     if args.partial_diff==False: args.noise_scale=args.noise_steps=None
     json_data = {
-        "input_path": args.input,
-        "template_name": args.template,
+        "input": args.input,
+        "template": args.template,
         "max_threads": args.max_threads,
         "rfd_contigs": args.rfd_contigs,
         "rfd_hotspots": args.rfd_hotspots,

@@ -28,12 +28,13 @@ distance=10
 hits_number=100
 core=0.05
 residues=None
-
+json="None"
 
 ## Parse command-line arguments
 while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
+        -j|--json) json="$2" ; shift ; break ;; # Path to the JSON file with the variables
         -i|--input) input="$2" ; shift ;;
         -t|--template) template="$2" ; shift ;;
         -m|--max_threads) max="$2" ; shift  ;;    
@@ -56,6 +57,10 @@ while [[ $# -gt 0 ]]; do
     shift  # Shift past the current argument
 done
 
+#Getting all info from the JSON file if provided
+if [ $json != "None" ]; then 
+    eval(python3 input_json_reader.py)
+fi
 
 mkdir -p ./output
 

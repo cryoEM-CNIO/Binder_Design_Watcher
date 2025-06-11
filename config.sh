@@ -10,7 +10,7 @@ SILENT_PATH="/apps/rosetta/dl_binder_design" #If you are usign the tools from nr
 
 RFD_ENV="SE3nv4090"
 PMPNN_ENV="dl_binder_design"
-AF2_ENV="dl_binder_design"
+AF2_ENV="af2_binder_design"
 MICRORUN_ENV="watcher"
 
 
