@@ -37,7 +37,7 @@ while [[ $# -gt 0 ]]; do
         -j|--json) json="$2" ; shift ; break ;; # Path to the JSON file with the variables
         -i|--input) input="$2" ; shift ;;
         -t|--template) template="$2" ; shift ;;
-        -m|--max_threads) max="$2" ; shift  ;;    
+        -m|--max_threads) max_threads="$2" ; shift  ;;    
         -c|--rfd_contigs) rfd_contigs="$2" ; shift  ;;    
         -h|--rfd_hotspots) rfd_hotspots="$2" ; shift  ;;    
         -np|--pmp_nseqs) pmp_nseqs="$2" ; shift  ;;    
@@ -59,7 +59,7 @@ done
 
 #Getting all info from the JSON file if provided
 if [ $json != "None" ]; then 
-    eval(python3 input_json_reader.py)
+    eval $(python3 $MICRORUN_PATH/microrun/scripts/input_json_reader.py $json)
 fi
 
 mkdir -p ./output
@@ -81,7 +81,7 @@ fi
 
 ## Prepare Folder & Variables
 echo "Preparing JSON to save the run variables"
-python3 $MICRORUN_PATH/microrun/scripts/json_variable_generation.py --input "$input" --template "$template" --max_threads "$max" --rfd_contigs "$rfd_contigs" --rfd_hotspots "$rfd_hotspots" --rfd_ndesigns "$rfd_ndesigns" --pmp_nseqs "$pmp_nseqs" --pmp_relax_cycles "$pmp_relax_cycles" --partial_diff "$partial_diff" --noise_steps "$noise_steps" --noise_scale "$noise_scale" --ckp "$ckp" --soluble_pMPNN "$soluble" --distance "$distance" --core "$core" --residues "$residues"
+python3 $MICRORUN_PATH/microrun/scripts/json_variable_generation.py --input "$input" --template "$template" --max_threads "$max_threads" --rfd_contigs "$rfd_contigs" --rfd_hotspots "$rfd_hotspots" --rfd_ndesigns "$rfd_ndesigns" --pmp_nseqs "$pmp_nseqs" --pmp_relax_cycles "$pmp_relax_cycles" --partial_diff "$partial_diff" --noise_steps "$noise_steps" --noise_scale "$noise_scale" --ckp "$ckp" --soluble_pMPNN "$soluble" --distance "$distance" --core "$core" --residues "$residues"
 
 old_i=1
 
@@ -93,10 +93,10 @@ while [ ! -f 'campaign_done' ]; do
     mkdir -p ./output/run_$i/slurm_logs
 
     # Set a default value for previous if i is smaller than max (initial cycles)
-    if [ "$i" -le $max ]; then
+    if [ "$i" -le $max_threads ]; then
         previous=0
     else
-        previous=$((i - $max))
+        previous=$((i - $max_threads))
     fi
     waitfor="output/run_${previous}/run_${previous}_done"
     # Skip waiting when previous is 0
