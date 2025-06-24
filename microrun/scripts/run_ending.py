@@ -19,7 +19,7 @@ campaign_done: An empty file that marks that all wanted binders have been genera
 
 # Define number of designs desired
 parser=argparse.ArgumentParser()
-parser.add_argument('--number', '-n' , type=int, default=100, help='Maximum number of successful binder desired')
+parser.add_argument('--number', '-n' , type=int, default=48, help='Maximum number of successful binder desired')
 args=parser.parse_args()
 
 number=args.number
@@ -48,16 +48,17 @@ try:
 	# Check the conditions
 
 	hits_number = df[
+		(df['pae_interaction'] <= pae_interaction_thres) &
+		(df['plddt_binder'] >= plddt_binder_thres)
 
-		(df['CUTRE'] <= CUTRE_thres) &
-		(df['interface_unsat_hbonds'] <= unsat_hbonds_thres) &
-		(df['interface_hbonds'] >= hbond_thres) &
-		(df['binder_surf_hyd'] <= binder_surface_hyd_thres) &
-		(df['Shape_complementarity'] >= shape_complementarity_thres) &
-		(df['dSASA'] >= dSASA_thres)
+		# (df['CUTRE'] <= CUTRE_thres) &
+		# (df['interface_unsat_hbonds'] <= unsat_hbonds_thres) &
+		# (df['interface_hbonds'] >= hbond_thres) &
+		# (df['binder_surf_hyd'] <= binder_surface_hyd_thres) &
+		# (df['Shape_complementarity'] >= shape_complementarity_thres) &
+		# (df['dSASA'] >= dSASA_thres)
 	].shape[0]
-		# (df['pae_interaction'] <= pae_interaction_thres) &
-		# (df['plddt_binder'] >= plddt_binder_thres) &
+
 
 	command='touch campaign_done'
 

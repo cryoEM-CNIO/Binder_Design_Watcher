@@ -38,6 +38,7 @@ def main():
     parser.add_argument("--distance", type=str, required=True, help="Distance parameter.")
     parser.add_argument("--core", type=float, required=True, help="Proportion of core residues" )
     parser.add_argument("--residues", type=str, required=True, help='Residues to fix, useful for scaffolding')
+    parser.add_argument("--hits_number", type = int , required=True, help='Total number of hits to be generated' )
     # Parse the arguments
     args = parser.parse_args()
 
@@ -61,7 +62,8 @@ def main():
         "soluble_pMPNN": args.soluble_pMPNN,
         "distance": args.distance,
         "core":args.core,
-        "residues":args.residues
+        "fixed_residues":args.residues,
+        "hits_number":args.hits_number
     }
 
     output_path=os.getcwd()
