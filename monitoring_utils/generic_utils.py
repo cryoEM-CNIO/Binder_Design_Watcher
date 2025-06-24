@@ -72,7 +72,8 @@ def merge_csv_files(directory, input_pdb_path):
     try:
         input_pdb_path=f'{directory}/{input_pdb_path}'
         df_whole=pd.read_csv(f'{directory}/Scoring_Stats.csv')
-        df_whole['original_design'] = df_whole['description'].apply(trim_substituted)
+        df_whole['description']=df_whole['description'].astype(str)  # Ensure 'description' is a string
+        df_whole['original_design'] = [trim_substituted(name) for name in df_whole['description'] if type(name) == str]
         input_df=pd.DataFrame(get_input_data(input_pdb_path))
         merged_df=pd.concat([df_whole,input_df], ignore_index=True)
         return merged_df
