@@ -9,7 +9,8 @@ while [[ $# -gt 0 ]]; do
         --t) t="$2" ; shift ;;
         --core) core="$2" ; shift ;;
         --residues) residues="$2" ; shift ;;
-        --directory) directory="$2" ; shift ;; 
+        --directory) directory="$2" ; shift ;;
+        --partial_diff) partial_diff="$2"; shift ;;
         *) echo "Unknown option: $1" ; exit 1 ;;
     esac
     shift 
@@ -35,7 +36,7 @@ echo "Current machine $machine"
 # Run!
 #run align
 
-python3 $MICRORUN_PATH/microrun/scripts/biopython_align.py --template $template --chain "B" --run "$run" --t "$t" --core "$core" --residues "$residues"
+python3 $MICRORUN_PATH/microrun/scripts/biopython_align.py --template $template --chain "B" --run "$run" --t "$t" --core "$core" --residues "$residues" --partial_diff "$partial_diff"
 #run silent to split in 4 groups each for each gpu
 echo "Creating silent files"
 /apps/rosetta/dl_binder_design/include/silent_tools/silentfrompdbsparallel "output/run_${run}/run_${run}_design_${t}*_substituted.pdb" > "$silent_output"

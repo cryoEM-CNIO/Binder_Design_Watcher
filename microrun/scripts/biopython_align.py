@@ -269,70 +269,72 @@ def save_protein_substituted(structure,output_dir):
 #################################################
 #----------------- FIXED FUNCTIONS -------------#
 #################################################
-def residues_length_added(input_path, template_path):
+def residues_length_added(input_path, template_path, partial_diff='True'):
     '''
-    When scaffolding is perormed, some residues can be added to the N-ter, changing the numbering of the residues,
-    This function should recognize the original sequence (if there is chain A), and count the numeber of residues added to the N-ter
+    When scaffolding is performed, some residues can be added to the N-ter, changing the numbering of the residues,
+    This function should recognize the original sequence (if there is chain A), and count the number of residues added to the N-ter
     If the residues are added to the C-ter, the function should not be used
     '''
-    #extract structure
-    template_structure = PDB.PDBParser(QUIET=True).get_structure('template', template_path)
-    input_structure = PDB.PDBParser(QUIET=True).get_structure('input', input_path)
-    #Extract sequence 
-    with open(input_path, 'r') as pdb_file:
-        for record in PdbIO.AtomIterator(pdb_file,input_structure):
-            chain = record.annotations['chain']
-            if chain == 'A':
-                binder_sequence = record.seq
-    with open(template_path, 'r') as template_file:
-        for record in PdbIO.AtomIterator(template_file,template_structure):
-            chain = record.annotations['chain']
-            if chain == 'A':
-                template_sequence = record.seq
-    number_of_residues_added=len(str(binder_sequence).split(str(template_sequence))[0])
+    if partial_diff == 'True':
+        number_of_residues_added=0
+    else:
+        #extract structure
+        template_structure = PDB.PDBParser(QUIET=True).get_structure('template', template_path)
+        input_structure = PDB.PDBParser(QUIET=True).get_structure('input', input_path)
+        #Extract sequence 
+        with open(input_path, 'r') as pdb_file:
+            for record in PdbIO.AtomIterator(pdb_file,input_structure):
+                chain = record.annotations['chain']
+                if chain == 'A':
+                    binder_sequence = record.seq
+        with open(template_path, 'r') as template_file:
+            for record in PdbIO.AtomIterator(template_file,template_structure):
+                chain = record.annotations['chain']
+                if chain == 'A':
+                    template_sequence = record.seq
+        number_of_residues_added=len(str(binder_sequence).split(str(template_sequence))[0])
     return int(number_of_residues_added)
 
 
 '''Function to add the fixed remark to the pdbs in order to fix some residues during pMPNN'''
-def add_fixed_residues(input_path,template_path,output_path, residues):
+def add_fixed_residues(input_path,template_path,output_path, residues,partial_diff):
     residues_to_fix = []
-    N_ter_residues=residues_length_added(input_path, template_path)
-    if residues is not None:
-        if residues != 'None':
-            residues_list = residues.strip('[').strip(']').strip().split(',')  # No problem if there are no commas in the input
-            for resi in residues_list:
-                try:
-                    residues_to_fix.append(str(int(resi)+N_ter_residues)+1)
-                except ValueError:
-                    for resi_range_id in range(int(resi.split('-')[0]), int(resi.split('-')[1]) + 1):
-                        residues_to_fix.append(int(resi_range_id)+int(N_ter_residues)+1)
-            
-            # Read the file contents
-            with open(output_path, 'r') as read_file:
-                contents = read_file.readlines()
-            
-            # Find the last occurrence of "END"
-            last_end_index = None
+    N_ter_residues=residues_length_added(input_path, template_path,partial_diff)
+    if residues is not None and residues != 'None' and residues != '[]':
+        residues_list = residues.strip('[').strip(']').strip().split(',')  # No problem if there are no commas in the input
+        for resi in residues_list:
+            try:
+                residues_to_fix.append(str(int(resi)+N_ter_residues)+1)
+            except ValueError:
+                for resi_range_id in range(int(resi.split('-')[0]), int(resi.split('-')[1]) + 1):
+                    residues_to_fix.append(int(resi_range_id)+int(N_ter_residues)+1)
+        
+        # Read the file contents
+        with open(output_path, 'r') as read_file:
+            contents = read_file.readlines()
+        
+        # Find the last occurrence of "END"
+        last_end_index = None
+        for i in range(len(contents) - 1, -1, -1):
+            if contents[i].strip() == "END":
+                last_end_index = i+1
+                break
+        # If "END" is not found, set last_end_index to the last TER
+        if last_end_index is None:
             for i in range(len(contents) - 1, -1, -1):
-                if contents[i].strip() == "END":
+                if contents[i].strip() == "TER":
                     last_end_index = i+1
                     break
-            # If "END" is not found, set last_end_index to the last TER
-            if last_end_index is None:
-                for i in range(len(contents) - 1, -1, -1):
-                    if contents[i].strip() == "TER":
-                        last_end_index = i+1
-                        break
-            # Insert the fixed remarks before the last "TER"
-            if last_end_index is not None:
-                for residue_id in residues_to_fix:
-                    contents.insert(last_end_index, f"REMARK PDBinfo-LABEL:{residue_id: >5} FIXED\n")
-            
-            # Write the updated contents back to the file
-            with open(output_path, 'w') as write_file:
-                write_file.writelines(contents)
-            
-            print(f'Residues {[i for i in residues_to_fix]} fixed in the pdb')
+        # Insert the fixed remarks before the last "TER"
+        if last_end_index is not None:
+            for residue_id in residues_to_fix:
+                contents.insert(last_end_index, f"REMARK PDBinfo-LABEL:{residue_id: >5} FIXED\n")
+        
+        # Write the updated contents back to the file
+        with open(output_path, 'w') as write_file:
+            write_file.writelines(contents)
+        
+        print(f'Residues {[i for i in residues_to_fix]} fixed in the pdb')
 
 def main():
     parser = argparse.ArgumentParser(description="Substitute a chain in PDB files.")
@@ -342,6 +344,7 @@ def main():
     parser.add_argument("--t", required=False, default='' , help='Indicator of the GPU in which it is running')
     parser.add_argument("--core", required=False, default=0.0696969697, type=float, help='Proportion of core residues to use as filter')
     parser.add_argument("--residues", required=False, default='None', help='List of residues of the binder to fix (Useful for scaffolding)')
+    parser.add_argument("--partial_diff", required=False, default='True', help='It is a partial diffusion run ?')
     args = parser.parse_args()
 
     '''
@@ -363,8 +366,8 @@ def main():
         clashes,hairpin=(int(check_clashes(sub_structure)), int(filter_by_dssp(pdb_path)))
         if clashes+hairpin == 2:
             output_path=save_protein_substituted(sub_structure,io_path)
-            if args.residues != 'None':
-                add_fixed_residues(pdb_path,args.template, output_path, args.residues)
+            if args.residues != 'None' and args.residues != '':
+                add_fixed_residues(pdb_path,args.template, output_path, args.residues, args.partial_diff)
         else:
             continue
 
