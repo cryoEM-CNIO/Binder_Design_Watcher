@@ -20,6 +20,7 @@ import json
 import numpy as np
 import glob
 import re
+import time
 import os
 from superimpose import superpose_pose_by_chain
 
@@ -194,7 +195,7 @@ def compute_rmsd_agreement(run_number,pose):
 
     #Get the design name 
     protein_name=pose.pdb_info().name()
-    pattern=r'.*(run_[0-9]+_design_[0-9]+).*'
+    pattern=r'.*(run_[0-9]+_gpu_[0-9]+_design_[0-9]+).*'
     cropped_name=re.search(pattern, protein_name).group(1)
     
     #Get design structure
@@ -310,6 +311,7 @@ if __name__== '__main__':
         }
 
     for pose in poses:
+        t0=time.perf_counter()
 
         # get protein name
         protein_name=pose.pdb_info().name()
@@ -375,3 +377,5 @@ if __name__== '__main__':
     except FileNotFoundError:
         merged_df.to_csv('Scoring_Stats.csv', index=False)
 
+    t_final=time.perf_counter()
+    print(f'{pose} PyRosetta analysis took {t_final-t0} seconds to run')

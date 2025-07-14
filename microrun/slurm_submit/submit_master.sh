@@ -35,13 +35,6 @@ echo "GPUs available: $GPUS_AVAILABLE"
 
 t=1
 
-# Define the CSV file to store benchmark results
-BENCHMARK_FILE="benchmark_results.csv"
-
-# Initialize the CSV file with headers if it doesn't exist
-if [ ! -f "$BENCHMARK_FILE" ]; then
-    echo "GPU_ID,Step,Start_Time,End_Time,Duration,Run" > "$BENCHMARK_FILE"
-fi
 
 for GPU_ID in $GPUS_AVAILABLE; do
     echo "Using $GPU_ID"
@@ -53,7 +46,6 @@ for GPU_ID in $GPUS_AVAILABLE; do
         # ----------------------------------------
         # 1. RFD
         # ----------------------------------------
-        START_TIME=$(date +%s)
         bash $MICRORUN_PATH/microrun/master_scripts/rfd.sh \
             --run "$run" --t "$t" \
             --input_pdb "$input" --contigmap_descriptor "$rfd_contigs" \
@@ -61,43 +53,28 @@ for GPU_ID in $GPUS_AVAILABLE; do
             --noise_scale "$noise_scale" --ckp "$ckp" \
             --partial_diff "$partial_diff" --residues "$residues" --hotspots_descriptor "$rfd_hotspots" --directory "$directory"> "$LOG_DIR/rfd.out" 2> "$LOG_DIR/rfd.err"
         wait
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        RUN="run_${run}"
-        echo "$GPU_ID,RFD,$START_TIME,$END_TIME,$DURATION, $RUN" >> "$BENCHMARK_FILE"
+
 
         # --------------------------------------------
         # 2. Aligning + filtering
         # --------------------------------------------
-        START_TIME=$(date +%s)
         bash $MICRORUN_PATH/microrun/master_scripts/aligning_filtering.sh --template "$template" --run "$run" --t "$t" --core "$core" --residues "$residues" --directory "$directory" > "$LOG_DIR/aligning_filtering.out" 2> "$LOG_DIR/aligning_filtering.err"
         wait
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        RUN="run_${run}"
-        echo "$GPU_ID,Aligning_Filtering,$START_TIME,$END_TIME,$DURATION, $RUN" >> "$BENCHMARK_FILE"
+
 
         # --------------------------------------------
         # 3. pMPNN
         # --------------------------------------------
-        START_TIME=$(date +%s)
         bash $MICRORUN_PATH/microrun/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --directory "$directory" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
         wait
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        RUN="run_${run}"
-        echo "$GPU_ID,pMPNN,$START_TIME,$END_TIME,$DURATION, $RUN" >> "$BENCHMARK_FILE"
+
 
         # --------------------------------------------
         # 4. Scoring
         # --------------------------------------------
-        START_TIME=$(date +%s)
         bash $MICRORUN_PATH/microrun/master_scripts/scoring.sh --run "$run" --t "$t" --directory "$directory" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
         wait
-        END_TIME=$(date +%s)
-        DURATION=$((END_TIME - START_TIME))
-        RUN="run_${run}"
-        echo "$GPU_ID,Scoring,$START_TIME,$END_TIME,$DURATION, $RUN" >> "$BENCHMARK_FILE"
+
     ) &
     ((t=t+1))
 done

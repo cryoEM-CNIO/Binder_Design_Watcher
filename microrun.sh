@@ -39,7 +39,8 @@ while [[ $# -gt 0 ]]; do
         -t|--template) template="$2" ; shift ;;
         -m|--max_threads) max_threads="$2" ; shift  ;;    
         -c|--rfd_contigs) rfd_contigs="$2" ; shift  ;;    
-        -h|--rfd_hotspots) rfd_hotspots="$2" ; shift  ;;    
+        -h|--rfd_hotspots) rfd_hotspots="$2" ; shift  ;;
+        -nd|--rfd_ndesigns) rfd_ndesigns="$2" ; shift  ;; #Number of designs for the RFD    
         -np|--pmp_nseqs) pmp_nseqs="$2" ; shift  ;;    
         -rc|--pmp_relax_cycles) pmp_relax_cycles="$2" ; shift  ;;   
         -pd|--partial_diff) partial_diff="$2" ; shift  ;; 

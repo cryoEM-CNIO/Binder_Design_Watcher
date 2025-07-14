@@ -357,11 +357,11 @@ def main():
     '''
     # Variable definition
     io_path=f"output/run_{args.run}/"
-    reference=f"{io_path}/run_{args.run}_design_{args.t}0.pdb"
+    reference=f"{io_path}/run_{args.run}_gpu_{args.t}_design_0.pdb"
     # This first function checks that the pdb has the order it should have for Biopython to understand it 
     order_pdb(args.template)
     template_aligned=structure_alignment(moving=args.template, template=reference, chain=args.chain)
-    for pdb_path in glob.glob(f"{io_path}/run_{args.run}_design_{args.t}[0-9].pdb"):
+    for pdb_path in glob.glob(f"{io_path}/run_{args.run}_gpu_{args.t}_design_*.pdb"):
         sub_structure=substitute_chain(pdb_path, args.chain, template_aligned)
         clashes,hairpin=(int(check_clashes(sub_structure)), int(filter_by_dssp(pdb_path)))
         if clashes+hairpin == 2:

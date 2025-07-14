@@ -28,10 +28,10 @@ done
 source $directory/config.sh
 conda activate $RFD_ENV
 
+design_startnum=0
 
 #Define variables
-output_prefix="output/run_${run}/run_${run}_design"
-(( design_startnum = t * 10 ))
+output_prefix="output/run_${run}/run_${run}_gpu_${t}_design"
 # Display the parsed values
 machine=`hostname`
 echo "Current machine $machine"
