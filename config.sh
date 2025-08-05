@@ -3,7 +3,7 @@
 RFD_PATH="/apps/rosetta/RFDifussion"
 PMPNN_PATH="/apps/rosetta/dl_binder_design" #If you are usign the tools from nrbennett repo, it should be the same as SILENT and AF2IG
 AF2IG_PATH="/apps/rosetta/dl_binder_design" #If you are usign the tools from nrbennett repo, it should be the same as PMPNN and SILENT
-MICRORUN_PATH="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+MICRORUN_PATH="$(dirname "$(realpath "${BASH_SOURCE[0]}")")" #Do not change this
 SILENT_PATH="/apps/rosetta/dl_binder_design" #If you are usign the tools from nrbennett repo, it should be the same as PMPNN and AF2IG
 
 # MANUALLY SET ENVIRONMENTS NAMES (example names set)

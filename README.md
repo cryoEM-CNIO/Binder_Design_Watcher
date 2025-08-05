@@ -164,7 +164,6 @@ As with RFD, this installs PyRosetta, which requires a license for commercial pu
 
 4. After cloning the repository and installing the environment, you have to set all your local information in **config.sh** (Paths to the RFD, pMPNN and AF2IG directory, environments names and slurm configuration).  
 
-5. Finally, we use slightly modified versions of both AF2IG and pMPNN to get the json files of the scorings (so we can compute the CUTRE and the iPSAE) and avoid some problems with the coupled backbone generation in pMPNN. These modified versions are provided in the **scripts** folder and named with the suffix **_cutre**. To run the microrun you should add these scripts to the corresponding folder.
    
 ## EXAMPLE USAGE
 
@@ -179,25 +178,24 @@ bash ../../microrun.sh --input input/PDL1_modified.pdb --template input/PDL1_mod
 2. To perform partial diffusion:
 ```bash
 cd Examples/RFD_partial_diffusion
-python3 ../../scripts/contig_map_getter.py # Copy the output and paste it in --rfd_contigs brackets
-bash ../../microrun.sh --input input/PDL1_modified.pdb --template input/PDL1_modified.pdb --max_threads 4 --partial_diff "True"  > campaign_example_pd.log 2>&1 & #To check what more things you can modify, see the flags sections next
+bash ../../microrun.sh --input input/PDL1_modified.pdb --template input/PDL1_modified.pdb --max_threads 4 --partial_diff "True"  > campaign_example_pd.log 2>&1 & #To check what things you can modify, see the flags sections next
 ```
 
 3. To perform sequence diversity:
 
 ```bash
 cd Examples/Sequence_diversity
-bash ../../sequence_diversity.sh --input input/run_20_design_3_substituted_dldesign_0_cycle1_dldesign_0_cycle1_af2pred.pdb --threads 2 --max 1000 --nseqs 50 --fr 0 --fixed "[1-20]"  > sd_2.log 2>&1 &
+bash ../../sequence_diversity.sh --input input/run_20_design_3_substituted_dldesign_0_cycle1_dldesign_0_cycle1_af2pred.pdb --threads 2 --max 1000 --nseqs 50 --fr 0  > sd_2.log 2>&1 &
 ```
 
 4. To activate the watcher:
 
 ```bash
 conda activate watcher
-python3 ../../microrun_watcher.py 
+python3 ../../microrun_watcher.py
 ```
 
-Watcher can be used with both microrun and sequence diversity. By default, watcher.py is located at port 8050. If you want to open more than one watcher at the same time, run --port 805X
+By default, watcher.py is located at port 8050. If you want to open more than one watcher at the same time, run --port 805X
 
 ### MICRORUN FLAGS
 
