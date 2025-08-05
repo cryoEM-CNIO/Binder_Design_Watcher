@@ -34,9 +34,9 @@ import numpy as np
 import time
 import os.path
 import math
-from utils.hits_utils import *
-from utils.generic_utils import *
-from utils.plotting_utils import *
+from monitoring_utils.hits_utils import *
+from monitoring_utils.generic_utils import *
+from monitoring_utils.plotting_utils import *
 
 
 
@@ -117,6 +117,7 @@ app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.FLATLY],
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
+    assets_folder='monitoring_utils/assets'
 )
 app.title = "BinderFlow Monitor"
 server = app.server
@@ -158,21 +159,21 @@ def serve_layout():
                     dbc.Collapse(
                         html.Div([
                             html.H5('PAE Interaction'),
-                            dcc.RangeSlider(id='pae_interaction_thres', min=0, max=30, value=[0,10], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='pae_interaction_thres', min=0, max=30,step=0.1, value=[0,10], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('CUTRE'),
-                            dcc.RangeSlider(id='CUTRE_thres', min=0, max=70, value=[0,10], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='CUTRE_thres', min=0, max=70,step=0.1, value=[0,10], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('pLDDT binder'),
-                            dcc.RangeSlider(id='plddt_binder_thres', min=0, max=100, value=[80,100], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='plddt_binder_thres', min=0, max=100,step=0.1, value=[80,100], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('dSASA'),
                             dcc.RangeSlider(id='dsasa_thres', min=0, max=10000, value=[1000,10000], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('Shape Complementarity'),
                             dcc.RangeSlider(id='shape_complementarity_thres', min=0, max=1, value=[0.5,1], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('Interface HBond'),
-                            dcc.RangeSlider(id='interface_hbond_thres', min=0, max=15, value=[3,15], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='interface_hbond_thres', min=0, max=20,step=1, value=[3,20], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('Interface Unsaturated HBond'),
-                            dcc.RangeSlider(id='interface_unsat_hbond_thres', min=0, max=15, value=[0,4], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='interface_unsat_hbond_thres', min=0, max=20,step=1, value=[0,4], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('Binder Surface Hydrophobicity'),
-                            dcc.RangeSlider(id='binder_surf_hyd_thres', min=0, max=1, value=[0,0.35], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='binder_surf_hyd_thres', min=0, max=1,step=0.01, value=[0,0.35], tooltip={"placement":"bottom","always_visible":True}),
                             html.Hr(),
                             html.Div([
                                 html.Span('X Value', className='axis-label'),
@@ -482,15 +483,17 @@ app.layout = serve_layout
     Output("extractions_molecule", 'data'),
     Output("extractions_molecule", "molStyles"),
     Input("extractions_molecule_dropdown", "value"),
-    Input('directory-dropdown', 'value')
+    Input('directory-dropdown', 'value'),
+    Input('input_pdb_path', 'value'),
 )
 
-def return_molecule(value,directory):
-    working_dir=f'{directory}/output/'
+def return_molecule(value,directory,input_pdb_path):
+    working_dir=f'{directory}/'
     if (value is None) or (value == ''):
         raise PreventUpdate
     else:
-        data_path, filename = get_design_file_path_and_name(value, working_dir)
+        data_path, filename = get_design_file_path_and_name(value, working_dir,input_pdb_path)
+        print(data_path, filename)
         try: data_path = data_path+'/'
         except: data_path = ''
         molstyles_dict = {
@@ -707,29 +710,14 @@ def extract_hits(working_dir, n, clicks, extract_type,DNA_seq, met, organism, th
         if extraction_list:
             for description in extraction_list:
                 print('###############################\nEXTRACTING HIT\n###############################\n' + description)
-                run_number = re.search(r'run_\d+',description).group()
-                design_number = math.floor(int(re.search(r'run_\d+_design_(\d+).*',description).group(1))/10)
-                ########## For the v2 tests microrun, different structure ######################################################
-                ########## If we go forward with the V3, marked lines must be remove before deployment ######################### 
-                if design_number != 0:
-                    pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
-                    af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
-                    af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
-                else:
-                    if os.path.isfile(f'{working_dir}/output/{run_number}/{run_number}_input_out.silent'):
-                        pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_input_out.silent'
-                        af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_input_sol_out_af2.silent'
-                        af2_file=f'{working_dir}/output/{run_number}/{run_number}_input_out_af2.silent'
-                    else:
-                        design_number=int(re.search(r'run_\d+_design_(\d+).*',description).group(1))
-                        pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
-                        af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
-                        af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
+                run_number, gpu_number, design_number = re.match(r'run_(\d+)_gpu_(\d+)_design_(\d+).*', description).groups()
+                pmpnn_file = f'{working_dir}/output/run_{run_number}/run_{run_number}_design_{gpu_number}_input_out.silent'
+                af2_file_sol=f'{working_dir}/output/run_{run_number}/run_{run_number}_design_{gpu_number}_input_sol_out_af2.silent'
+                af2_file=f'{working_dir}/output/run_{run_number}/run_{run_number}_design_{gpu_number}_input_out_af2.silent'
+                print(af2_file)
                 if extract_type == 'PMPNN':
                         command = f'silentextractspecific {pmpnn_file}' + description[:-8] + ' > extraction.log'
-
                 else:
-
                     if os.path.isfile(af2_file_sol):
                         command = f'silentextractspecific {af2_file_sol} '+ description + ' > extraction.log'  
                         subprocess.run(command, cwd=hits_folder, shell=True)

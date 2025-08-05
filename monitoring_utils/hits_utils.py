@@ -44,44 +44,58 @@ def get_hit_names(filtered_df, xaxis_value):
         return hit_names
     else:
         return ["No hits found under the specified conditions"]
-    
-# Function to get best hit path
-def get_design_file_path_and_name(hits_names, directory,input_pdb_path):
+
+#Function to get hits file path and name for representation 
+def get_design_file_path_and_name(hits_names, directory, input_pdb_path):
     '''
-    Gets a design file path and name for its representaion in ngl
+    Gets a design file path and name for its representation in NGL.
 
-    Input:
+    Inputs:
+    - hits_names: identifier of the hit name (e.g., run_1_design_2_substituted or run_1_gpu_0_design_5)
+    - directory: base directory, e.g., /path/to/output
+    - input_pdb_path: path to the input PDB file for viewing the original structure in NGL
 
-    description --> identifier of the hit name
-
-    directory --> directory where we are working /path/to/output/.
-    
-    Output:
-
-    Returns the data path and its identification for the ngl representation  
-
+    Outputs:
+    - data_path: full path to the directory containing the file
+    - filename: filename without extension for NGL use
     '''
-    
+
     description = hits_names
-    match = re.match(r"(run_\d+)_design_(\d+_substituted).*", description)
-    match2 = re.match(r"Input", description)
-    if not match and not match2:
-        print("Invalid description format")
-        # Returning None for both values if the format is invalid
-        return None, None
-    elif match2:
-        input_path=os.path.join(directory, input_pdb_path)
-        # If the description is "Input", return the directory and a placeholder filename
-        data_path ='/'.join(glob.glob(input_path)[0].split('/')[:-1])
+
+    # Pattern for old format: run_1_design_2_substituted
+    pattern_old = r"(run_\d+)_design_(\d+_substituted)"
+    # Pattern for new format: run_1_gpu_0_design_5
+    pattern_new = r"(run_\d+)_gpu_(\d+)_design_(\d+_substituted)"
+    # Input case
+    pattern_input = r"Input"
+
+    match_old = re.match(pattern_old, description)
+    match_new = re.match(pattern_new, description)
+    match_input = re.match(pattern_input, description)
+
+    if match_input:
+        input_path = os.path.join(directory, input_pdb_path)
+        data_path = '/'.join(glob.glob(input_path)[0].split('/')[:-1])
         filename = glob.glob(input_path)[0].split('/')[-1].split('.')[0]
         return data_path, filename
-    run_part, design_part = match.groups()
-    # Constructing the file path using 'directory' which is now an absolute path
-    working_directory = directory+'/output'
-    data_path = os.path.join(working_directory, run_part)
-    filename = f"{run_part}_design_{design_part}"
 
-    return data_path, filename
+    elif match_new:
+        run_part,gpu_part,design_part = match_new.groups()
+        working_directory = os.path.join(directory, 'output')
+        data_path = os.path.join(working_directory, run_part)
+        filename = f"{run_part}_gpu_{gpu_part}_design_{design_part}"
+        return data_path, filename
+
+    elif match_old:
+        run_part, design_part = match_old.groups()
+        working_directory = os.path.join(directory, 'output')
+        data_path = os.path.join(working_directory, run_part)
+        filename = f"{run_part}_design_{design_part}"
+        return data_path, filename
+
+    else:
+        print("Invalid description format")
+        return None, None
 
 #Function to add the stats of the hits to the PDB, as they are added in after AF2IG
 #Makes PD comparison more comfortable
@@ -104,7 +118,7 @@ def add_stats_to_pdb(description,directory):
     design_metrics = df_rosetta[df_rosetta['description'] == description]
     design_metrics = design_metrics.drop(['close_residues_target', 'close_residues_binder'], axis=1)
     #The fastas has an abbreviated form of the name, so you have to crop it
-    description_short=re.search(r'(run_\d+_design_\d+.*_dldesign_\d+).*', description).group(1)
+    description_short=re.search(r'(run_\d+_.*_design_\d+.*_dldesign_\d+).*', description).group(1)
     pdb_path = f'{directory}/hits/{description}.pdb'
     fasta_path=f'{directory}/hits/fastas/{description_short}.fasta'
     mw, ip, extinction_coefficient=param_stats(fasta_path)
@@ -133,7 +147,7 @@ def extract_fasta_seq(description):
 
     # Define variables
     input_file=f'{description}.pdb'
-    pattern = r'.*(run_\d+_design_\d+.*_dldesign_\d+)'
+    pattern = r'.*(run_\d+_.*_design_\d+.*_dldesign_\d+)'
     directory = os.path.dirname(input_file)
 
     #Get fasta names 
@@ -436,25 +450,18 @@ def param_stats(fasta):
     extinction_coefficient --> Extinction coefficient of the protein 
 
     '''
-
     #Extract the sequence
-
     with open(fasta, 'r') as file:
         for line in file.readlines():
             if not line.startswith('>'):
                 sequence=line
-
     #open it in biopython suite
     X= ProteinAnalysis(sequence)
-
     #param calculation
-
     mw=X.molecular_weight()
     ip=X.isoelectric_point()
     extinction_coefficient=X.molar_extinction_coefficient()[0]
-
     ## Check the number of W to determine if the extinction coefficient is faithful
-
     return mw, ip, extinction_coefficient 
 
 

@@ -47,7 +47,7 @@ for GPU_ID in $GPUS_AVAILABLE; do
         # 1. RFD
         # ----------------------------------------
         bash $MICRORUN_PATH/microrun/master_scripts/rfd.sh \
-            --run "$run" --t "$t" \
+            --run "$run" --t "$GPU_ID" \
             --input_pdb "$input" --contigmap_descriptor "$rfd_contigs" \
             --designs_n "$rfd_ndesigns" --noise_steps "$noise_steps" \
             --noise_scale "$noise_scale" --ckp "$ckp" \
@@ -58,21 +58,21 @@ for GPU_ID in $GPUS_AVAILABLE; do
         # --------------------------------------------
         # 2. Aligning + filtering
         # --------------------------------------------
-        bash $MICRORUN_PATH/microrun/master_scripts/aligning_filtering.sh --template "$template" --run "$run" --t "$t" --core "$core" --residues "$residues" --directory "$directory" > "$LOG_DIR/aligning_filtering.out" 2> "$LOG_DIR/aligning_filtering.err"
+        bash $MICRORUN_PATH/microrun/master_scripts/aligning_filtering.sh --template "$template" --run "$run" --t "$GPU_ID" --core "$core" --residues "$residues" --directory "$directory" > "$LOG_DIR/aligning_filtering.out" 2> "$LOG_DIR/aligning_filtering.err"
         wait
 
 
         # --------------------------------------------
         # 3. pMPNN
         # --------------------------------------------
-        bash $MICRORUN_PATH/microrun/master_scripts/pmpnn.sh --run "$run" --t "$t" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --directory "$directory" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
+        bash $MICRORUN_PATH/microrun/master_scripts/pmpnn.sh --run "$run" --t "$GPU_ID" --n_seqs "$pmp_nseqs" --relax_cycles "$pmp_relax_cycles" --directory "$directory" > "$LOG_DIR/pmpnn.out" 2> "$LOG_DIR/pmpnn.err"
         wait
 
 
         # --------------------------------------------
         # 4. Scoring
         # --------------------------------------------
-        bash $MICRORUN_PATH/microrun/master_scripts/scoring.sh --run "$run" --t "$t" --directory "$directory" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
+        bash $MICRORUN_PATH/microrun/master_scripts/scoring.sh --run "$run" --t "$GPU_ID" --directory "$directory" > "$LOG_DIR/scoring.out" 2> "$LOG_DIR/scoring.err"
         wait
 
     ) &
