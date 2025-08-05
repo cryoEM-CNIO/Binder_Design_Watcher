@@ -140,7 +140,7 @@ We also have created some scripts that can be useful for binder design. These sc
 - `RMSD_rosetta.py`: A script which uses PyRosetta to make all-by-all pairwise comparisons of the hits designs and clusterized them by similarity. This script can be useful for selecting structurally diverse designs in an initial design screening
 - `sequence_diversity.sh`: A script that allows you to make microrun-structured design project starting from a pdb (perform pMPNN, AF2 and PyRosetta). Useful to make sequence exploration once you have a good structure.
 
-#### 
+
 ## INSTALLATION
 
 1. Clone this repository
@@ -163,33 +163,69 @@ As with RFD, this installs PyRosetta, which requires a license for commercial pu
 
 4. After cloning the repository and installing the environment, you have to set all your local information in **config.sh** (Paths to the RFD, pMPNN and AF2IG directory, environments names and slurm configuration).  
 
-   
+
 ## EXAMPLE USAGE
 
-1. To generate binders with microrun.sh:
+To generate binders with `microrun.sh`, the information can be provided through flags (as in the examples) or through a JSON file that contains all the information (--json input.json):
+
+input.json
+```json
+{
+    "input": "input/PDL1_trimmed.pdb",
+    "template": "input/PDL1_trimmed.pdb",
+    "max_threads": "2",
+    "rfd_contigs": "[ 65-155/0 B1018-1132/0 ]",
+    "rfd_hotspots": "[B1054,B1068]",
+    "rfd_ndesigns": 1,
+    "pmp_nseqs": 1,
+    "pmp_relax_cycles": "0",
+    "partial_diff": "False",
+    "noise_steps": "20",
+    "noise_scale": "1",
+    "checkpoint": "/apps/rosetta/RFDiffusion/models/Complex_base_ckpt.pt",
+    "node": "",
+    "soluble_pMPNN": "False",
+    "distance": "10",
+    "core": 0.05,
+    "fixed_residues": "None",
+    "hits_number": 48
+}
+```
+The path of the checkpoint must be adequately modified ot your settings
+
+To perform initial binder generation with flags:
 
 ```bash
 cd Examples/RFD_binder_generation
-python3 ../../scripts/contig_map_getter.py -i input/PDL1_modified.pdb # Copy the output and paste it in --rfd_contigs brackets
-bash ../../microrun.sh --input input/PDL1_modified.pdb --template input/PDL1_modified.pdb --max_threads 4 --rfd_contigs "[ 50-125 B1001-1115/0 ]" --rfd_hotspots "[ B1007, B1011, B1025, B1029 ]"  > campaign_example.log 2>&1 &
+python3 ../../scripts/contig_map_getter.py -i input/PDL1_trimmed.pdb # Copy the output and paste it in --rfd_contigs brackets
+bash ../../microrun.sh --input input/PDL1_trimmed.pdb --template input/PDL1_trimmed.pdb --max_threads 4 --rfd_contigs "[ 65-155/0 B1018-1132/0 ]" --rfd_hotspots "[B1054,B1068]"  > campaign_example.log 2>&1 &
 ```
 
-2. To perform partial diffusion:
+To perform initial binder generation with JSON:
+
+```bash
+cd Examples/RFD_binder_generation
+bash ../../microrun.sh --json input.json  > campaign_example_json.log 2>&1 &
+```
+
+
+To perform partial diffusion:
 ```bash
 cd Examples/RFD_partial_diffusion
 bash ../../microrun.sh --input input/PDL1_modified.pdb --template input/PDL1_modified.pdb --max_threads 4 --partial_diff "True"  > campaign_example_pd.log 2>&1 & #To check what things you can modify, see the flags sections next
 ```
 
-3. To perform sequence diversity:
+To perform sequence diversity:
 
 ```bash
 cd Examples/Sequence_diversity
 bash ../../sequence_diversity.sh --input input/run_20_design_3_substituted_dldesign_0_cycle1_dldesign_0_cycle1_af2pred.pdb --threads 2 --max 1000 --nseqs 50 --fr 0  > sd_2.log 2>&1 &
 ```
 
-4. To activate the watcher:
+To activate the watcher ():
 
 ```bash
+cd Examples
 conda activate watcher
 python3 ../../microrun_watcher.py
 ```
@@ -219,7 +255,9 @@ The microrun script admits different flags for binder design. Many of them have 
 - `--ckp`: Checkpoint path to bias the structure generation. Default="Complex_base_ckpt.pt"
 - `--node`: Node in SLURM to which the job wants to be sent. Default=''
 - `--hits_number`: Number of designs which pass the filtering metrics, after which the process stops. Default=100
-- `--residues`: List of residues from the design you want to fix. It should be provided between brackets, separating residues with commas and defining ranges with -. If you are doing scaffolding, the template structure must have the chain A you are using as scaffold (with the same length you are using for scaffolding).For example: "[1,3,10-20]" Default="None"
+- `--residues`: List of residues from the design you want to fix. It should be provided between brackets, separating residues with commas and defining 
+ranges with -. If you are doing scaffolding, the template structure must have the chain A you are using as scaffold (with the same length you are using for scaffolding).For example: "[1,3,10-20]" Default="None"
+- `--json`: Json file with all the info above. Default="None"
 
 ### SEQUENCE DIVERSITY FLAGS
 ***The mandatory flags are:**
@@ -232,6 +270,8 @@ The microrun script admits different flags for binder design. Many of them have 
 - `--fr`: Number of Fast Relax cycles to perform (_No more than one). Default=1
 - `--nseqs`: Number of sequences to generate per run. Default=1
 `No more than 1 sequence can be generated if the FR is set to 1`
+
+
 
 ## SCORING METRICS
 
