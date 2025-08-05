@@ -131,7 +131,6 @@ Finally, the extract hits button allows you to extract the hits.
 
 `Note: We have not extensively tested the DNA sequence extraction. Before ordering, make sure everything is correct`
 
-
 ![alt figure](./figures/Slide2.jpg)
 
 ### OTHER SCRIPTS
@@ -153,9 +152,9 @@ Where install_folder is the path where you want to install it.
 
 `Note: Be sure that the path is accessible for the HPC cluster`
 
-2. For the *microrun.sh* script, no additional package needs to be installed apart from the installation of [RFD](https://github.com/RosettaCommons/RFdiffusion) as described in its GitHub.
+2. For the *microrun.sh* script, no additional package needs to be installed apart from the installation of [RFD](https://github.com/RosettaCommons/RFdiffusion) and a fork version of [dl_binder_design](https://github.com/CarlosChacon-cell/dl_binder_design) (needed to solve some performance issues). The installation is detailed in the respective GitHubs
 
-3. For the *watcher.py*, run the following code from the cloned repository folder:
+3. Run the following script from the cloned repository folder:
 
 `bash install_watcher.sh --pkg_manager PKG_MANAGER `
 
