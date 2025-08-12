@@ -15,10 +15,12 @@ things to do:
 
 import os
 import pandas as pd
-
 import dash
+import dash_molstar as dashmolstar
+from dash_molstar.utils import molstar_helper
 from dash import dash_table
 import dash_bio as dashbio
+from dash_molstar.utils.representations import Representation
 from dash import html
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, Input, Output, State, callback
@@ -34,9 +36,9 @@ import numpy as np
 import time
 import os.path
 import math
-from monitoring_utils.hits_utils import *
-from monitoring_utils.generic_utils import *
-from monitoring_utils.plotting_utils import *
+from utils.hits_utils import *
+from utils.generic_utils import *
+from utils.plotting_utils import *
 
 
 
@@ -117,7 +119,6 @@ app = dash.Dash(
     __name__,
     external_stylesheets=[dbc.themes.FLATLY],
     meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
-    assets_folder='monitoring_utils/assets'
 )
 app.title = "BinderFlow Monitor"
 server = app.server
@@ -159,21 +160,21 @@ def serve_layout():
                     dbc.Collapse(
                         html.Div([
                             html.H5('PAE Interaction'),
-                            dcc.RangeSlider(id='pae_interaction_thres', min=0, max=30,step=0.1, value=[0,10], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='pae_interaction_thres', min=0, max=30, value=[0,10], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('CUTRE'),
-                            dcc.RangeSlider(id='CUTRE_thres', min=0, max=70,step=0.1, value=[0,10], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='CUTRE_thres', min=0, max=70, value=[0,10], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('pLDDT binder'),
-                            dcc.RangeSlider(id='plddt_binder_thres', min=0, max=100,step=0.1, value=[80,100], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='plddt_binder_thres', min=0, max=100, value=[80,100], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('dSASA'),
                             dcc.RangeSlider(id='dsasa_thres', min=0, max=10000, value=[1000,10000], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('Shape Complementarity'),
                             dcc.RangeSlider(id='shape_complementarity_thres', min=0, max=1, value=[0.5,1], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('Interface HBond'),
-                            dcc.RangeSlider(id='interface_hbond_thres', min=0, max=20,step=1, value=[3,20], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='interface_hbond_thres', min=0, max=15, value=[3,15], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('Interface Unsaturated HBond'),
-                            dcc.RangeSlider(id='interface_unsat_hbond_thres', min=0, max=20,step=1, value=[0,4], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='interface_unsat_hbond_thres', min=0, max=15, value=[0,4], tooltip={"placement":"bottom","always_visible":True}),
                             html.H5('Binder Surface Hydrophobicity'),
-                            dcc.RangeSlider(id='binder_surf_hyd_thres', min=0, max=1,step=0.01, value=[0,0.35], tooltip={"placement":"bottom","always_visible":True}),
+                            dcc.RangeSlider(id='binder_surf_hyd_thres', min=0, max=1, value=[0,0.35], tooltip={"placement":"bottom","always_visible":True}),
                             html.Hr(),
                             html.Div([
                                 html.Span('X Value', className='axis-label'),
@@ -295,10 +296,10 @@ def serve_layout():
                                                 id='extractions_molecule_dropdown',
                                                 className='dropdown'
                                             ),
-                                            dashbio.NglMoleculeViewer(id="extractions_molecule")
+                                            dashmolstar.MolstarViewer(id="extractions_molecule", style={'height': '600px', 'width': '100%'})
                                         ])
                                     ], className='mb-4'),
-                                    width=4
+                                    width=7
                                 ),
                                 dbc.Col(
                                     dbc.Card([
@@ -308,11 +309,11 @@ def serve_layout():
                                                 options=[],
                                                 value=[],
                                                 id='extraction-selection',
-                                                style={'display':'flex','flexDirection':'column','gap':'5px'}
+                                                style={'display':'flex','flexDirection':'column','gap':'5px', 'width':'100%','maxHeight':'600px', 'overflowY':'auto'},
                                             )
                                         ])
                                     ], className='mb-4'),
-                                    width=8
+                                    width=5
                                 )
                             ]),
                             # Extraction Options Card
@@ -478,50 +479,37 @@ def serve_layout():
 app.layout = serve_layout
 
 
-## PDB viewer
 @callback(
-    Output("extractions_molecule", 'data'),
-    Output("extractions_molecule", "molStyles"),
+    Output("extractions_molecule", "data"),
     Input("extractions_molecule_dropdown", "value"),
-    Input('directory-dropdown', 'value'),
-    Input('input_pdb_path', 'value'),
+    Input("directory-dropdown", "value"),
 )
-
-def return_molecule(value,directory,input_pdb_path):
-    working_dir=f'{directory}/'
-    if (value is None) or (value == ''):
+def return_molecule(value, directory):
+    if not value or not directory:
         raise PreventUpdate
-    else:
-        data_path, filename = get_design_file_path_and_name(value, working_dir,input_pdb_path)
-        print(data_path, filename)
-        try: data_path = data_path+'/'
-        except: data_path = ''
-        molstyles_dict = {
-            "representations": ["ribbon"],
-            "chosenAtomsColor": "white",
-            "chosenAtomsRadius": 1,
-            "molSpacingXaxis": 100,
-        }
-    data_list = [
-        # chain A in blue, reset_view=True to recenter on the first model
-        ngl_parser.get_data(
-            data_path=data_path,
-            pdb_id=f"{filename}.A",    # tells NGL to load only chain A
-            color='#edb081',
-            reset_view=True,
-            local=True
-        ),
-        # chain B in green, reset_view=False to keep the same camera
-        ngl_parser.get_data(
-            data_path=data_path,
-            pdb_id=f"{filename}.B",    # load only chain B
-            color='#4b2362',
-            reset_view=False,
-            local=True
-        )
-    ]
 
-    return data_list, molstyles_dict
+    working_dir = os.path.join(directory, "output")
+    data_path, filename = get_design_file_path_and_name(value, working_dir)
+
+    file_path = os.path.join(data_path, filename + ".pdb")
+
+    print(f"Loading molecule from: {file_path}")
+
+    chainA = molstar_helper.get_targets(chain="A")
+    chainB = molstar_helper.get_targets(chain="B")
+
+    chainA_representation = Representation(type='cartoon', color="uniform")
+    chainA_representation.set_color_params({'value': 15577217})
+    chainB_representation = Representation(type='gaussian-surface', color="uniform")
+    chainB_representation.set_type_params({'alpha': 1})
+    chainB_representation.set_color_params({'value': 8815233})
+
+    component_A = molstar_helper.create_component("Chain A", chainA, chainA_representation)
+    component_B = molstar_helper.create_component("Chain B", chainB, chainB_representation)
+
+    data = molstar_helper.parse_molecule(file_path, "pdb", component=[component_A, component_B], preset={'kind': 'empty'})
+
+    return data
 
 # Callback to update graphs and table
 @callback(
@@ -710,14 +698,29 @@ def extract_hits(working_dir, n, clicks, extract_type,DNA_seq, met, organism, th
         if extraction_list:
             for description in extraction_list:
                 print('###############################\nEXTRACTING HIT\n###############################\n' + description)
-                run_number, gpu_number, design_number = re.match(r'run_(\d+)_gpu_(\d+)_design_(\d+).*', description).groups()
-                pmpnn_file = f'{working_dir}/output/run_{run_number}/run_{run_number}_design_{gpu_number}_input_out.silent'
-                af2_file_sol=f'{working_dir}/output/run_{run_number}/run_{run_number}_design_{gpu_number}_input_sol_out_af2.silent'
-                af2_file=f'{working_dir}/output/run_{run_number}/run_{run_number}_design_{gpu_number}_input_out_af2.silent'
-                print(af2_file)
+                run_number = re.search(r'run_\d+',description).group()
+                design_number = math.floor(int(re.search(r'run_\d+_design_(\d+).*',description).group(1))/10)
+                ########## For the v2 tests microrun, different structure ######################################################
+                ########## If we go forward with the V3, marked lines must be remove before deployment ######################### 
+                if design_number != 0:
+                    pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
+                    af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
+                    af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
+                else:
+                    if os.path.isfile(f'{working_dir}/output/{run_number}/{run_number}_input_out.silent'):
+                        pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_input_out.silent'
+                        af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_input_sol_out_af2.silent'
+                        af2_file=f'{working_dir}/output/{run_number}/{run_number}_input_out_af2.silent'
+                    else:
+                        design_number=int(re.search(r'run_\d+_design_(\d+).*',description).group(1))
+                        pmpnn_file = f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out.silent'
+                        af2_file_sol=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_sol_out_af2.silent'
+                        af2_file=f'{working_dir}/output/{run_number}/{run_number}_design_{design_number}_input_out_af2.silent'
                 if extract_type == 'PMPNN':
                         command = f'silentextractspecific {pmpnn_file}' + description[:-8] + ' > extraction.log'
+
                 else:
+
                     if os.path.isfile(af2_file_sol):
                         command = f'silentextractspecific {af2_file_sol} '+ description + ' > extraction.log'  
                         subprocess.run(command, cwd=hits_folder, shell=True)
